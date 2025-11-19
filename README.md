@@ -1,5 +1,281 @@
 # Smart Home IoT Light Control System
 
+A web-based IoT light control system with JWT authentication, built on Raspberry Pi 5.
+
+## 🎯 Project Overview
+
+Remote light control via web interface meeting these requirements:
+1. ✅ Toggle lights ON/OFF from anywhere
+2. ✅ Real-time status display
+3. ✅ JWT authentication
+4. ✅ Timer functionality
+5. ✅ User-friendly interface
+
+**Tech Stack:** Python 3.13, Flask, SQLite, GPIO, JWT, HTML/CSS/JS
+
+---
+
+## 🔧 Hardware
+
+- Raspberry Pi 5 with 32GB microSD
+- LED + 330Ω resistor + breadboard + jumper wires
+- **Circuit:** GPIO 17 → 330Ω → LED(+) → LED(-) → GND
+
+---
+
+## 💻 Software
+
+### System Packages (via apt)
+```bash
+python3-flask python3-flask-cors python3-bcrypt python3-werkzeug 
+python3-jwt python3-dotenv python3-gpiozero python3-rpi.gpio
+```
+
+**Note:** Using system packages instead of venv due to Python 3.13 compatibility and SSL issues during setup.
+
+---
+
+## 📥 Quick Installation
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/smart-home-light.git
+cd smart-home-light
+
+# Run install script
+chmod +x install.sh
+./install.sh
+
+# Configure environment
+cp .env.example .env
+python3 -c "import secrets; print(secrets.token_hex(32))"  # Generate secret
+nano .env  # Add your generated secret
+
+# Initialize database
+python3 database.py
+
+# Start server
+python3 app.py
+
+# Access at http://YOUR_PI_IP:5000
+```
+
+---
+
+## 🚧 Setup Challenges & Solutions
+
+### 1. Headless Setup (No Monitor)
+**Challenge:** No micro-HDMI adapter for Pi 5  
+**Solution:** SSH-only setup via `ssh username@smartlight-an.local`  
+**Benefit:** Professional IoT approach, no monitor needed permanently
+
+### 2. SSL Certificate Failures
+**Problem:** `[SSL: CERTIFICATE_VERIFY_FAILED]` on all downloads  
+**Root Causes:**
+- Hardware RTC stuck at 1970 → time showed 2025
+- Home network (Sophie-BR1-5G) intercepting HTTPS
+
+**Solutions:**
+```bash
+# Fixed time
+sudo timedatectl set-ntp true
+sudo date -s "2024-11-19 HH:MM:SS"
+
+# Switched to mobile hotspot for downloads
+sudo nmcli connection up "An's network"
+```
+
+### 3. Package Installation Issues
+**Problems:**
+- pip SSL errors on home network
+- Python 3.13 wheel incompatibilities
+- Hash mismatches (filesize: 0) on apt downloads
+
+**Solution:** System packages via apt on mobile hotspot
+```bash
+sudo apt install python3-flask python3-bcrypt python3-jwt ...
+```
+
+**Why system packages:**
+- Pre-compiled for Raspberry Pi OS
+- No virtual environment complexity
+- Reliable for single-purpose IoT device
+
+### 4. Multi-Network Support
+**Need:** Work at home AND school  
+**Solution:** Configured both networks
+```bash
+# Home WiFi (preconfigured in imager)
+# Mobile hotspot (added via nmcli)
+sudo nmcli dev wifi connect "An's network" password "..."
+```
+
+**Result:** Pi auto-switches between networks
+
+---
+
+## 📁 Project Structure
+
+```
+smart-home-light/
+├── install.sh           # Installation script
+├── .env.example         # Config template (commit this)
+├── .env                 # Real secrets (DON'T commit!)
+├── database.py          # DB schema & user management
+├── app.py              # Flask server + JWT + GPIO
+├── index.html          # Web UI
+├── .gitignore          # Protects .env, *.db, venv/
+└── README.md           # This file
+```
+
+---
+
+## ⚙️ Configuration
+
+### .env Setup
+```bash
+python3 -c "import secrets; print(secrets.token_hex(32))"
+nano .env
+```
+
+```env
+JWT_SECRET_KEY=your-64-char-hex-string-here
+JWT_ACCESS_TOKEN_EXPIRES=3600
+```
+
+### Multi-Network
+```bash
+nmcli connection show  # List configured networks
+sudo nmcli connection up "network-name"  # Switch network
+```
+
+---
+
+## 🌐 API Endpoints
+
+**All endpoints except auth require:** `Authorization: Bearer {token}`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /auth/register | Create account |
+| POST | /auth/login | Get JWT token |
+| POST | /auth/logout | Revoke token |
+| GET | /light/status | Get light state |
+| POST | /light/toggle | Toggle light |
+| POST | /light/timer | Set auto-off timer |
+| GET | /light/history | View action log |
+
+---
+
+## 🔒 Security
+
+- **Passwords:** bcrypt hashed with salt
+- **Tokens:** JWT signed with HS256
+- **Expiration:** 1 hour default
+- **Revocation:** Logout blocklists tokens
+- **Secrets:** Stored in `.env` (never committed)
+
+---
+
+## 🔧 Troubleshooting
+
+### SSH Issues
+```bash
+ping smartlight-an.local -c 4  # Check if Pi is online
+ssh username@IP_ADDRESS        # Try IP instead of hostname
+```
+
+### Package Install Fails
+**SSL errors?** Switch to mobile hotspot:
+```bash
+sudo nmcli connection up "An's network"
+sudo apt update && sudo apt install [packages]
+```
+
+### GPIO Not Working
+```bash
+sudo usermod -a -G gpio $USER
+sudo reboot
+```
+
+### Time/SSL Issues
+```bash
+sudo date -s "2024-11-19 HH:MM:SS"
+sudo timedatectl set-ntp true
+```
+
+### Can't Access Web Interface
+- Verify server running: `python3 app.py`
+- Check firewall: `sudo ufw status`
+- Confirm same network: `hostname -I`
+
+---
+
+## 📚 Key Learnings
+
+**Technical Decisions:**
+- Headless > Desktop: Better for IoT, mirrors production
+- System packages > venv: More reliable with Python 3.13 on embedded systems
+- Custom JWT > flask-jwt-extended: Simpler dependencies
+- Web app > Native app: Cross-platform, easier to maintain
+
+**Network Lessons:**
+- Managed networks (university/corporate) can block SSL downloads
+- Mobile hotspot bypasses restrictions
+- Multi-network config essential for portable demos
+- Hardware RTC issues affect SSL certificate validation
+
+**IoT Best Practices:**
+- Edge computing (local processing)
+- Headless operation
+- Multi-network resilience
+- Graceful GPIO fallback (simulation mode)
+
+---
+
+## 🚀 Usage Scenarios
+
+**At Home:**
+- Pi on home WiFi (10.200.27.134)
+- Access from any device on home network
+
+**At School/Demo:**
+1. Turn on phone hotspot
+2. Pi auto-connects
+3. Connect laptop to hotspot
+4. Access via new IP
+
+**Remote Development:**
+- SSH from Mac: `ssh username@smartlight-an.local`
+- Edit code with nano
+- Run server, test in browser
+
+---
+
+## 📖 Resources
+
+- [Flask Documentation](https://flask.palletsprojects.com/)
+- [GPIO Zero Docs](https://gpiozero.readthedocs.io/)
+- [Raspberry Pi Documentation](https://www.raspberrypi.com/documentation/)
+- [JWT Introduction](https://jwt.io/introduction)
+
+---
+
+## 📝 Files to Commit
+
+✅ Commit to GitHub:
+- README.md, .gitignore, .env.example
+- install.sh, database.py, app.py, index.html
+
+❌ Never commit:
+- .env (has secrets!)
+- *.db (user data)
+- venv/ (if it existed)
+
+---
+
+**Built for Embedded Systems Course | November 2024**# Smart Home IoT Light Control System
+
 A comprehensive IoT project implementing remote light control via web interface with JWT authentication, built on Raspberry Pi 5.
 
 ---
@@ -914,7 +1190,283 @@ Enable detailed error messages:
 # In app_secure.py
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)  # Set debug=True
+# Smart Home IoT Light Control System
+
+A web-based IoT light control system with JWT authentication, built on Raspberry Pi 5.
+
+## 🎯 Project Overview
+
+Remote light control via web interface meeting these requirements:
+1. ✅ Toggle lights ON/OFF from anywhere
+2. ✅ Real-time status display
+3. ✅ JWT authentication
+4. ✅ Timer functionality
+5. ✅ User-friendly interface
+
+**Tech Stack:** Python 3.13, Flask, SQLite, GPIO, JWT, HTML/CSS/JS
+
+---
+
+## 🔧 Hardware
+
+- Raspberry Pi 5 with 32GB microSD
+- LED + 330Ω resistor + breadboard + jumper wires
+- **Circuit:** GPIO 17 → 330Ω → LED(+) → LED(-) → GND
+
+---
+
+## 💻 Software
+
+### System Packages (via apt)
+```bash
+python3-flask python3-flask-cors python3-bcrypt python3-werkzeug 
+python3-jwt python3-dotenv python3-gpiozero python3-rpi.gpio
 ```
+
+**Note:** Using system packages instead of venv due to Python 3.13 compatibility and SSL issues during setup.
+
+---
+
+## 📥 Quick Installation
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/smart-home-light.git
+cd smart-home-light
+
+# Run install script
+chmod +x install.sh
+./install.sh
+
+# Configure environment
+cp .env.example .env
+python3 -c "import secrets; print(secrets.token_hex(32))"  # Generate secret
+nano .env  # Add your generated secret
+
+# Initialize database
+python3 database.py
+
+# Start server
+python3 app.py
+
+# Access at http://YOUR_PI_IP:5000
+```
+
+---
+
+## 🚧 Setup Challenges & Solutions
+
+### 1. Headless Setup (No Monitor)
+**Challenge:** No micro-HDMI adapter for Pi 5  
+**Solution:** SSH-only setup via `ssh username@smartlight-an.local`  
+**Benefit:** Professional IoT approach, no monitor needed permanently
+
+### 2. SSL Certificate Failures
+**Problem:** `[SSL: CERTIFICATE_VERIFY_FAILED]` on all downloads  
+**Root Causes:**
+- Hardware RTC stuck at 1970 → time showed 2025
+- Home network (Sophie-BR1-5G) intercepting HTTPS
+
+**Solutions:**
+```bash
+# Fixed time
+sudo timedatectl set-ntp true
+sudo date -s "2024-11-19 HH:MM:SS"
+
+# Switched to mobile hotspot for downloads
+sudo nmcli connection up "An's network"
+```
+
+### 3. Package Installation Issues
+**Problems:**
+- pip SSL errors on home network
+- Python 3.13 wheel incompatibilities
+- Hash mismatches (filesize: 0) on apt downloads
+
+**Solution:** System packages via apt on mobile hotspot
+```bash
+sudo apt install python3-flask python3-bcrypt python3-jwt ...
+```
+
+**Why system packages:**
+- Pre-compiled for Raspberry Pi OS
+- No virtual environment complexity
+- Reliable for single-purpose IoT device
+
+### 4. Multi-Network Support
+**Need:** Work at home AND school  
+**Solution:** Configured both networks
+```bash
+# Home WiFi (preconfigured in imager)
+# Mobile hotspot (added via nmcli)
+sudo nmcli dev wifi connect "An's network" password "..."
+```
+
+**Result:** Pi auto-switches between networks
+
+---
+
+## 📁 Project Structure
+
+```
+smart-home-light/
+├── install.sh           # Installation script
+├── .env.example         # Config template (commit this)
+├── .env                 # Real secrets (DON'T commit!)
+├── database.py          # DB schema & user management
+├── app.py              # Flask server + JWT + GPIO
+├── index.html          # Web UI
+├── .gitignore          # Protects .env, *.db, venv/
+└── README.md           # This file
+```
+
+---
+
+## ⚙️ Configuration
+
+### .env Setup
+```bash
+python3 -c "import secrets; print(secrets.token_hex(32))"
+nano .env
+```
+
+```env
+JWT_SECRET_KEY=your-64-char-hex-string-here
+JWT_ACCESS_TOKEN_EXPIRES=3600
+```
+
+### Multi-Network
+```bash
+nmcli connection show  # List configured networks
+sudo nmcli connection up "network-name"  # Switch network
+```
+
+---
+
+## 🌐 API Endpoints
+
+**All endpoints except auth require:** `Authorization: Bearer {token}`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /auth/register | Create account |
+| POST | /auth/login | Get JWT token |
+| POST | /auth/logout | Revoke token |
+| GET | /light/status | Get light state |
+| POST | /light/toggle | Toggle light |
+| POST | /light/timer | Set auto-off timer |
+| GET | /light/history | View action log |
+
+---
+
+## 🔒 Security
+
+- **Passwords:** bcrypt hashed with salt
+- **Tokens:** JWT signed with HS256
+- **Expiration:** 1 hour default
+- **Revocation:** Logout blocklists tokens
+- **Secrets:** Stored in `.env` (never committed)
+
+---
+
+## 🔧 Troubleshooting
+
+### SSH Issues
+```bash
+ping smartlight-an.local -c 4  # Check if Pi is online
+ssh username@IP_ADDRESS        # Try IP instead of hostname
+```
+
+### Package Install Fails
+**SSL errors?** Switch to mobile hotspot:
+```bash
+sudo nmcli connection up "An's network"
+sudo apt update && sudo apt install [packages]
+```
+
+### GPIO Not Working
+```bash
+sudo usermod -a -G gpio $USER
+sudo reboot
+```
+
+### Time/SSL Issues
+```bash
+sudo date -s "2024-11-19 HH:MM:SS"
+sudo timedatectl set-ntp true
+```
+
+### Can't Access Web Interface
+- Verify server running: `python3 app.py`
+- Check firewall: `sudo ufw status`
+- Confirm same network: `hostname -I`
+
+---
+
+## 📚 Key Learnings
+
+**Technical Decisions:**
+- Headless > Desktop: Better for IoT, mirrors production
+- System packages > venv: More reliable with Python 3.13 on embedded systems
+- Custom JWT > flask-jwt-extended: Simpler dependencies
+- Web app > Native app: Cross-platform, easier to maintain
+
+**Network Lessons:**
+- Managed networks (university/corporate) can block SSL downloads
+- Mobile hotspot bypasses restrictions
+- Multi-network config essential for portable demos
+- Hardware RTC issues affect SSL certificate validation
+
+**IoT Best Practices:**
+- Edge computing (local processing)
+- Headless operation
+- Multi-network resilience
+- Graceful GPIO fallback (simulation mode)
+
+---
+
+## 🚀 Usage Scenarios
+
+**At Home:**
+- Pi on home WiFi (10.200.27.134)
+- Access from any device on home network
+
+**At School/Demo:**
+1. Turn on phone hotspot
+2. Pi auto-connects
+3. Connect laptop to hotspot
+4. Access via new IP
+
+**Remote Development:**
+- SSH from Mac: `ssh username@smartlight-an.local`
+- Edit code with nano
+- Run server, test in browser
+
+---
+
+## 📖 Resources
+
+- [Flask Documentation](https://flask.palletsprojects.com/)
+- [GPIO Zero Docs](https://gpiozero.readthedocs.io/)
+- [Raspberry Pi Documentation](https://www.raspberrypi.com/documentation/)
+- [JWT Introduction](https://jwt.io/introduction)
+
+---
+
+## 📝 Files to Commit
+
+✅ Commit to GitHub:
+- README.md, .gitignore, .env.example
+- install.sh, database.py, app.py, index.html
+
+❌ Never commit:
+- .env (has secrets!)
+- *.db (user data)
+- venv/ (if it existed)
+
+---
+
+**Built for Embedded Systems Course | November 2024**```
 
 **Warning:** Never use `debug=True` in production!
 
@@ -974,7 +1526,283 @@ if __name__ == '__main__':
 
 **Linux & DevOps:**
 - Command line proficiency
-- Package management (apt, pip)
+- Package management (apt, pip)# Smart Home IoT Light Control System
+
+A web-based IoT light control system with JWT authentication, built on Raspberry Pi 5.
+
+## 🎯 Project Overview
+
+Remote light control via web interface meeting these requirements:
+1. ✅ Toggle lights ON/OFF from anywhere
+2. ✅ Real-time status display
+3. ✅ JWT authentication
+4. ✅ Timer functionality
+5. ✅ User-friendly interface
+
+**Tech Stack:** Python 3.13, Flask, SQLite, GPIO, JWT, HTML/CSS/JS
+
+---
+
+## 🔧 Hardware
+
+- Raspberry Pi 5 with 32GB microSD
+- LED + 330Ω resistor + breadboard + jumper wires
+- **Circuit:** GPIO 17 → 330Ω → LED(+) → LED(-) → GND
+
+---
+
+## 💻 Software
+
+### System Packages (via apt)
+```bash
+python3-flask python3-flask-cors python3-bcrypt python3-werkzeug 
+python3-jwt python3-dotenv python3-gpiozero python3-rpi.gpio
+```
+
+**Note:** Using system packages instead of venv due to Python 3.13 compatibility and SSL issues during setup.
+
+---
+
+## 📥 Quick Installation
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/smart-home-light.git
+cd smart-home-light
+
+# Run install script
+chmod +x install.sh
+./install.sh
+
+# Configure environment
+cp .env.example .env
+python3 -c "import secrets; print(secrets.token_hex(32))"  # Generate secret
+nano .env  # Add your generated secret
+
+# Initialize database
+python3 database.py
+
+# Start server
+python3 app.py
+
+# Access at http://YOUR_PI_IP:5000
+```
+
+---
+
+## 🚧 Setup Challenges & Solutions
+
+### 1. Headless Setup (No Monitor)
+**Challenge:** No micro-HDMI adapter for Pi 5  
+**Solution:** SSH-only setup via `ssh username@smartlight-an.local`  
+**Benefit:** Professional IoT approach, no monitor needed permanently
+
+### 2. SSL Certificate Failures
+**Problem:** `[SSL: CERTIFICATE_VERIFY_FAILED]` on all downloads  
+**Root Causes:**
+- Hardware RTC stuck at 1970 → time showed 2025
+- Home network (Sophie-BR1-5G) intercepting HTTPS
+
+**Solutions:**
+```bash
+# Fixed time
+sudo timedatectl set-ntp true
+sudo date -s "2024-11-19 HH:MM:SS"
+
+# Switched to mobile hotspot for downloads
+sudo nmcli connection up "An's network"
+```
+
+### 3. Package Installation Issues
+**Problems:**
+- pip SSL errors on home network
+- Python 3.13 wheel incompatibilities
+- Hash mismatches (filesize: 0) on apt downloads
+
+**Solution:** System packages via apt on mobile hotspot
+```bash
+sudo apt install python3-flask python3-bcrypt python3-jwt ...
+```
+
+**Why system packages:**
+- Pre-compiled for Raspberry Pi OS
+- No virtual environment complexity
+- Reliable for single-purpose IoT device
+
+### 4. Multi-Network Support
+**Need:** Work at home AND school  
+**Solution:** Configured both networks
+```bash
+# Home WiFi (preconfigured in imager)
+# Mobile hotspot (added via nmcli)
+sudo nmcli dev wifi connect "An's network" password "..."
+```
+
+**Result:** Pi auto-switches between networks
+
+---
+
+## 📁 Project Structure
+
+```
+smart-home-light/
+├── install.sh           # Installation script
+├── .env.example         # Config template (commit this)
+├── .env                 # Real secrets (DON'T commit!)
+├── database.py          # DB schema & user management
+├── app.py              # Flask server + JWT + GPIO
+├── index.html          # Web UI
+├── .gitignore          # Protects .env, *.db, venv/
+└── README.md           # This file
+```
+
+---
+
+## ⚙️ Configuration
+
+### .env Setup
+```bash
+python3 -c "import secrets; print(secrets.token_hex(32))"
+nano .env
+```
+
+```env
+JWT_SECRET_KEY=your-64-char-hex-string-here
+JWT_ACCESS_TOKEN_EXPIRES=3600
+```
+
+### Multi-Network
+```bash
+nmcli connection show  # List configured networks
+sudo nmcli connection up "network-name"  # Switch network
+```
+
+---
+
+## 🌐 API Endpoints
+
+**All endpoints except auth require:** `Authorization: Bearer {token}`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /auth/register | Create account |
+| POST | /auth/login | Get JWT token |
+| POST | /auth/logout | Revoke token |
+| GET | /light/status | Get light state |
+| POST | /light/toggle | Toggle light |
+| POST | /light/timer | Set auto-off timer |
+| GET | /light/history | View action log |
+
+---
+
+## 🔒 Security
+
+- **Passwords:** bcrypt hashed with salt
+- **Tokens:** JWT signed with HS256
+- **Expiration:** 1 hour default
+- **Revocation:** Logout blocklists tokens
+- **Secrets:** Stored in `.env` (never committed)
+
+---
+
+## 🔧 Troubleshooting
+
+### SSH Issues
+```bash
+ping smartlight-an.local -c 4  # Check if Pi is online
+ssh username@IP_ADDRESS        # Try IP instead of hostname
+```
+
+### Package Install Fails
+**SSL errors?** Switch to mobile hotspot:
+```bash
+sudo nmcli connection up "An's network"
+sudo apt update && sudo apt install [packages]
+```
+
+### GPIO Not Working
+```bash
+sudo usermod -a -G gpio $USER
+sudo reboot
+```
+
+### Time/SSL Issues
+```bash
+sudo date -s "2024-11-19 HH:MM:SS"
+sudo timedatectl set-ntp true
+```
+
+### Can't Access Web Interface
+- Verify server running: `python3 app.py`
+- Check firewall: `sudo ufw status`
+- Confirm same network: `hostname -I`
+
+---
+
+## 📚 Key Learnings
+
+**Technical Decisions:**
+- Headless > Desktop: Better for IoT, mirrors production
+- System packages > venv: More reliable with Python 3.13 on embedded systems
+- Custom JWT > flask-jwt-extended: Simpler dependencies
+- Web app > Native app: Cross-platform, easier to maintain
+
+**Network Lessons:**
+- Managed networks (university/corporate) can block SSL downloads
+- Mobile hotspot bypasses restrictions
+- Multi-network config essential for portable demos
+- Hardware RTC issues affect SSL certificate validation
+
+**IoT Best Practices:**
+- Edge computing (local processing)
+- Headless operation
+- Multi-network resilience
+- Graceful GPIO fallback (simulation mode)
+
+---
+
+## 🚀 Usage Scenarios
+
+**At Home:**
+- Pi on home WiFi (10.200.27.134)
+- Access from any device on home network
+
+**At School/Demo:**
+1. Turn on phone hotspot
+2. Pi auto-connects
+3. Connect laptop to hotspot
+4. Access via new IP
+
+**Remote Development:**
+- SSH from Mac: `ssh username@smartlight-an.local`
+- Edit code with nano
+- Run server, test in browser
+
+---
+
+## 📖 Resources
+
+- [Flask Documentation](https://flask.palletsprojects.com/)
+- [GPIO Zero Docs](https://gpiozero.readthedocs.io/)
+- [Raspberry Pi Documentation](https://www.raspberrypi.com/documentation/)
+- [JWT Introduction](https://jwt.io/introduction)
+
+---
+
+## 📝 Files to Commit
+
+✅ Commit to GitHub:
+- README.md, .gitignore, .env.example
+- install.sh, database.py, app.py, index.html
+
+❌ Never commit:
+- .env (has secrets!)
+- *.db (user data)
+- venv/ (if it existed)
+
+---
+
+**Built for Embedded Systems Course | November 2024**
 - Service management
 - File system navigation
 - Text editors (nano/vim)
