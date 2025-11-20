@@ -1,15 +1,13 @@
-# Virtual Environment
-venv/
-env/
-
-# Environment Variables
+# Environment variables
 .env
 backend/.env
 
-# Database
+# Virtual Environment
+backend/venv/
+
+# Database files
 *.db
-*.sqlite
-*.sqlite3
+*.db-journal
 
 # Python
 __pycache__/
@@ -18,7 +16,7 @@ __pycache__/
 *.so
 .Python
 
-# IDE
+# IDEs
 .vscode/
 .idea/
 *.swp
@@ -27,6 +25,3 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log

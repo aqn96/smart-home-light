@@ -23,15 +23,6 @@ sudo apt upgrade -y
 echo "🐍 Installing Python 3 and dependencies..."
 sudo apt install -y python3 python3-pip python3-venv python3-dev
 
-# Install Node.js and npm for React frontend
-echo "📦 Installing Node.js (LTS)..."
-if ! command -v node &> /dev/null; then
-    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-    sudo apt install -y nodejs
-else
-    echo "✅ Node.js already installed: $(node --version)"
-fi
-
 # Install GPIO libraries
 echo "🔌 Installing GPIO libraries..."
 sudo apt install -y python3-gpiozero python3-rpi.gpio
@@ -68,19 +59,11 @@ deactivate
 
 cd ..
 
-# Setup Frontend
+# Frontend setup
 echo ""
-echo "🎨 Setting up Frontend (React + Vite)..."
-cd frontend || exit
-
-if [ ! -f "package.json" ]; then
-    echo "⚠️  Frontend not initialized yet. Run: npm create vite@latest . -- --template react"
-else
-    echo "Installing npm packages..."
-    npm install
-fi
-
-cd ..
+echo "🎨 Frontend Setup"
+echo "   Using vanilla HTML/CSS/JS - no dependencies needed!"
+echo "   Frontend is served directly by FastAPI"
 
 # Configure environment
 echo ""
@@ -112,8 +95,7 @@ echo "📋 Next Steps:"
 echo "=================================================="
 echo ""
 echo "1. Configure Environment:"
-echo "   cd backend"
-echo "   nano .env"
+echo "   nano backend/.env"
 echo "   (Add JWT_SECRET_KEY - generate with: python3 -c 'import secrets; print(secrets.token_hex(32))')"
 echo ""
 echo "2. Initialize Database:"
@@ -121,18 +103,13 @@ echo "   cd backend"
 echo "   source venv/bin/activate"
 echo "   python database.py"
 echo ""
-echo "3. Start Backend Server:"
+echo "3. Start Server:"
 echo "   cd backend"
 echo "   source venv/bin/activate"
 echo "   uvicorn main:app --reload --host 0.0.0.0 --port 8000"
 echo ""
-echo "4. Start Frontend (in new terminal):"
-echo "   cd frontend"
-echo "   npm run dev -- --host"
-echo ""
-echo "5. Access Application:"
-echo "   Backend API: http://$(hostname -I | awk '{print $1}'):8000"
-echo "   Frontend UI: http://$(hostname -I | awk '{print $1}'):5173"
+echo "4. Access Application:"
+echo "   Open browser: http://$(hostname -I | awk '{print $1}'):8000"
 echo "   API Docs: http://$(hostname -I | awk '{print $1}'):8000/docs"
 echo ""
 echo "⚠️  You may need to reboot for GPIO permissions: sudo reboot"
