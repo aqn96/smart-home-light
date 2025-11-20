@@ -1,23 +1,12 @@
 #!/bin/bash
-# Smart Home IoT Light Control System - Installation Script
-# Raspberry Pi OS (Debian-based)
 
-set -e  # Exit on error
-
-echo "=================================================="
-echo "  Smart Home Light Control - Installation"
+echo "🚀 Smart Home IoT Light Control System - Installation"
 echo "=================================================="
 echo ""
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
 # Check if running on Raspberry Pi
-if [ ! -f /proc/device-tree/model ] || ! grep -q "Raspberry Pi" /proc/device-tree/model 2>/dev/null; then
-    echo -e "${YELLOW}Warning: This script is designed for Raspberry Pi${NC}"
+if ! grep -q "Raspberry Pi" /proc/cpuinfo 2>/dev/null; then
+    echo "⚠️  Warning: This script is designed for Raspberry Pi"
     read -p "Continue anyway? (y/n) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -25,141 +14,126 @@ if [ ! -f /proc/device-tree/model ] || ! grep -q "Raspberry Pi" /proc/device-tre
     fi
 fi
 
-echo -e "${GREEN}Step 1: Updating package lists...${NC}"
+# Update system
+echo "📦 Updating system packages..."
 sudo apt update
+sudo apt upgrade -y
+
+# Install Python 3 and pip
+echo "🐍 Installing Python 3 and dependencies..."
+sudo apt install -y python3 python3-pip python3-venv python3-dev
+
+# Install Node.js and npm for React frontend
+echo "📦 Installing Node.js (LTS)..."
+if ! command -v node &> /dev/null; then
+    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+    sudo apt install -y nodejs
+else
+    echo "✅ Node.js already installed: $(node --version)"
+fi
+
+# Install GPIO libraries
+echo "🔌 Installing GPIO libraries..."
+sudo apt install -y python3-gpiozero python3-rpi.gpio
+
+# Setup Backend
+echo ""
+echo "🔧 Setting up Backend (FastAPI)..."
+cd backend || exit
+
+# Create virtual environment
+if [ ! -d "venv" ]; then
+    echo "Creating virtual environment..."
+    python3 -m venv venv
+fi
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Upgrade pip
+pip install --upgrade pip
+
+# Install Python dependencies
+echo "Installing Python packages..."
+if [ -f "requirements.txt" ]; then
+    pip install -r requirements.txt
+else
+    echo "⚠️  requirements.txt not found, installing manually..."
+    pip install fastapi uvicorn[standard] python-jose[cryptography] passlib[bcrypt] python-multipart gpiozero python-dotenv sqlalchemy
+    pip freeze > requirements.txt
+fi
+
+# Deactivate venv
+deactivate
+
+cd ..
+
+# Setup Frontend
+echo ""
+echo "🎨 Setting up Frontend (React + Vite)..."
+cd frontend || exit
+
+if [ ! -f "package.json" ]; then
+    echo "⚠️  Frontend not initialized yet. Run: npm create vite@latest . -- --template react"
+else
+    echo "Installing npm packages..."
+    npm install
+fi
+
+cd ..
+
+# Configure environment
+echo ""
+echo "🔐 Environment Configuration"
+if [ ! -f "backend/.env" ]; then
+    if [ -f ".env.example" ]; then
+        cp .env.example backend/.env
+        echo "✅ Created backend/.env from .env.example"
+        echo ""
+        echo "⚠️  IMPORTANT: Edit backend/.env and add your JWT secret!"
+        echo "   Generate one with: python3 -c 'import secrets; print(secrets.token_hex(32))'"
+    else
+        echo "⚠️  .env.example not found"
+    fi
+else
+    echo "✅ backend/.env already exists"
+fi
+
+# Add user to gpio group
+echo ""
+echo "👤 Adding user to GPIO group..."
+sudo usermod -a -G gpio $USER
 
 echo ""
-echo -e "${GREEN}Step 2: Installing Python and system dependencies...${NC}"
-sudo apt install -y \
-    python3 \
-    python3-pip \
-    python3-full \
-    git
-
-echo ""
-echo -e "${GREEN}Step 3: Installing Flask web framework...${NC}"
-sudo apt install -y \
-    python3-flask \
-    python3-flask-cors
-
-echo ""
-echo -e "${GREEN}Step 4: Installing security libraries...${NC}"
-sudo apt install -y \
-    python3-bcrypt \
-    python3-werkzeug \
-    python3-jwt \
-    python3-dotenv
-
-echo ""
-echo -e "${GREEN}Step 5: Installing GPIO libraries...${NC}"
-sudo apt install -y \
-    python3-gpiozero \
-    python3-rpi.gpio
-
-echo ""
-echo -e "${GREEN}Step 6: Verifying installations...${NC}"
-
-# Test each package
-python3 << EOF
-import sys
-try:
-    import flask
-    print("✅ Flask version:", flask.__version__)
-except ImportError:
-    print("❌ Flask not found")
-    sys.exit(1)
-
-try:
-    import flask_cors
-    print("✅ Flask-CORS installed")
-except ImportError:
-    print("❌ Flask-CORS not found")
-    sys.exit(1)
-
-try:
-    import bcrypt
-    print("✅ bcrypt installed")
-except ImportError:
-    print("❌ bcrypt not found")
-    sys.exit(1)
-
-try:
-    import werkzeug
-    print("✅ Werkzeug installed")
-except ImportError:
-    print("❌ Werkzeug not found")
-    sys.exit(1)
-
-try:
-    import jwt
-    print("✅ PyJWT installed")
-except ImportError:
-    print("❌ PyJWT not found")
-    sys.exit(1)
-
-try:
-    from dotenv import load_dotenv
-    print("✅ python-dotenv installed")
-except ImportError:
-    print("❌ python-dotenv not found")
-    sys.exit(1)
-
-try:
-    from gpiozero import LED
-    print("✅ GPIO Zero installed")
-except ImportError:
-    print("❌ GPIO Zero not found")
-    sys.exit(1)
-
-try:
-    import RPi.GPIO
-    print("✅ RPi.GPIO installed")
-except ImportError:
-    print("❌ RPi.GPIO not found")
-    sys.exit(1)
-
-print("")
-print("🎉 All dependencies installed successfully!")
-EOF
-
-echo ""
-echo -e "${GREEN}Step 7: Checking Python version...${NC}"
-PYTHON_VERSION=$(python3 --version)
-echo "Python version: $PYTHON_VERSION"
-
-echo ""
-echo -e "${GREEN}Step 8: Getting network information...${NC}"
-IP_ADDRESS=$(hostname -I | awk '{print $1}')
-HOSTNAME=$(hostname)
-echo "Hostname: $HOSTNAME"
-echo "IP Address: $IP_ADDRESS"
-
+echo "✅ Installation Complete!"
 echo ""
 echo "=================================================="
-echo -e "${GREEN}✅ Installation Complete!${NC}"
+echo "📋 Next Steps:"
 echo "=================================================="
 echo ""
-echo "Next steps:"
-echo "1. Create .env file with your configuration"
-echo "2. Run: python3 database.py (to initialize database)"
-echo "3. Run: python3 app.py (to start the server)"
-echo "4. Access web interface at: http://$IP_ADDRESS:5000"
+echo "1. Configure Environment:"
+echo "   cd backend"
+echo "   nano .env"
+echo "   (Add JWT_SECRET_KEY - generate with: python3 -c 'import secrets; print(secrets.token_hex(32))')"
 echo ""
-echo "For documentation, see README.md"
-echo "=================================================="#!/bin/bash
-# Installation script for Smart Home Light Control
-
-echo "Installing system packages..."
-sudo apt update
-sudo apt install -y \
-  python3-flask \
-  python3-flask-cors \
-  python3-bcrypt \
-  python3-werkzeug \
-  python3-jwt \
-  python3-dotenv \
-  python3-gpiozero \
-  python3-rpi.gpio
-
-echo "✅ Installation complete!"
-python3 -c "import flask; print('Flask version:', flask.__version__)"
+echo "2. Initialize Database:"
+echo "   cd backend"
+echo "   source venv/bin/activate"
+echo "   python database.py"
+echo ""
+echo "3. Start Backend Server:"
+echo "   cd backend"
+echo "   source venv/bin/activate"
+echo "   uvicorn main:app --reload --host 0.0.0.0 --port 8000"
+echo ""
+echo "4. Start Frontend (in new terminal):"
+echo "   cd frontend"
+echo "   npm run dev -- --host"
+echo ""
+echo "5. Access Application:"
+echo "   Backend API: http://$(hostname -I | awk '{print $1}'):8000"
+echo "   Frontend UI: http://$(hostname -I | awk '{print $1}'):5173"
+echo "   API Docs: http://$(hostname -I | awk '{print $1}'):8000/docs"
+echo ""
+echo "⚠️  You may need to reboot for GPIO permissions: sudo reboot"
+echo ""
