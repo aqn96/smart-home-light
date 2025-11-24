@@ -72,7 +72,7 @@ class MotionSensorController:
         
         # It's dark AND motion detected - turn on light
         self.motion_active = True
-        print(f"[{timestamp}] 🎯 Motion + Darkness → Turning light ON")
+        print(f"[{timestamp}] 💡 LED turned ON by motion sensor")
         
         # Turn on light using existing controller
         light_controller.turn_on()
