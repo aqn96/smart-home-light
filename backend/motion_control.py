@@ -3,30 +3,60 @@ from gpiozero.exc import BadPinFactory
 from gpio_control import light_controller
 from light_sensor import light_sensor
 import threading
+import time
 from datetime import datetime
 
 class MotionSensorController:
-    def __init__(self, pir_pin=27, timeout=10):
-        """Initialize PIR motion sensor on specified GPIO pin"""
+    def __init__(self, pir_pin=27, timeout=10, calibration_time=60):
+        """Initialize PIR motion sensor on GPIO 27 (Pin 13)"""
         self.pir_pin = pir_pin
         self.timeout = timeout  # Seconds to keep light on after motion stops
+        self.calibration_time = calibration_time  # PIR calibration time
         self.enabled = True  # Motion sensor can be disabled
         self.simulation_mode = False
+        self.is_calibrated = False  # NEW: Track calibration status
         self.pir = None
         self.timer = None
         self.motion_active = False
         
         try:
             self.pir = MotionSensor(pir_pin)
-            print(f"✅ PIR Motion Sensor initialized on pin {pir_pin}")
+            print(f"✅ PIR Motion Sensor initialized on GPIO {pir_pin} (Pin 13)")
+            
+            # Start calibration in background thread
+            self.calibration_thread = threading.Thread(target=self._calibrate)
+            self.calibration_thread.daemon = True
+            self.calibration_thread.start()
+            
         except (BadPinFactory, Exception) as e:
             print(f"⚠️ PIR sensor not available, running in simulation mode: {e}")
             self.simulation_mode = True
+            self.is_calibrated = True  # Skip calibration in simulation mode
+    
+    def _calibrate(self):
+        """Calibrate PIR sensor with countdown (runs in background)"""
+        print(f"⏳ PIR calibrating for {self.calibration_time} seconds...")
+        print("   Please stay still!")
+        
+        # Countdown every 10 seconds
+        for remaining in range(self.calibration_time, 0, -10):
+            print(f"   {remaining} seconds remaining...")
+            time.sleep(10)
+        
+        self.is_calibrated = True
+        print("✅ PIR sensor calibrated and ready!")
+        
+        # Now start listening for motion
+        self.start()
     
     def start(self):
         """Start listening for motion events"""
         if not self.pir:
             print("⚠️ Motion sensor in simulation mode - no hardware events")
+            return
+        
+        if not self.is_calibrated:
+            print("⚠️ Cannot start - PIR still calibrating...")
             return
             
         self.pir.when_motion = self._on_motion_detected
@@ -35,19 +65,14 @@ class MotionSensorController:
     
     def _on_motion_detected(self):
         """Called when motion is detected"""
-        if not self.enabled:
+        if not self.enabled or not self.is_calibrated:
             return
         
         timestamp = datetime.now().strftime("%H:%M:%S")
         
-        # NEW: Check if it's dark before turning on light
-        if not light_sensor.is_dark():
-            print(f"[{timestamp}] ☀️ Daylight detected - motion ignored (energy saved!)")
-            return
-        
         # It's dark AND motion detected - turn on light
         self.motion_active = True
-        print(f"[{timestamp}] 🚶 Motion + Darkness → Turning light ON")
+        print(f"[{timestamp}] 🎯 Motion + Darkness → Turning light ON")
         
         # Turn on light using existing controller
         light_controller.turn_on()
@@ -58,7 +83,7 @@ class MotionSensorController:
     
     def _on_no_motion(self):
         """Called when motion stops"""
-        if not self.enabled:
+        if not self.enabled or not self.is_calibrated:
             return
         
         timestamp = datetime.now().strftime("%H:%M:%S")
@@ -84,13 +109,20 @@ class MotionSensorController:
         return {
             "enabled": self.enabled,
             "timeout": self.timeout,
-            "motion_detected": self.pir.motion_detected if self.pir else False,
+            "calibrated": self.is_calibrated,  # NEW: Include calibration status
+            "motion_detected": self.pir.motion_detected if (self.pir and self.is_calibrated) else False,
             "motion_active": self.motion_active,
             "simulation_mode": self.simulation_mode
         }
     
     def update_settings(self, enabled=None, timeout=None):
         """Update motion sensor settings"""
+        if not self.is_calibrated:
+            return {
+                "error": "PIR still calibrating",
+                "calibrated": False
+            }
+        
         if enabled is not None:
             self.enabled = enabled
             status = "enabled" if enabled else "disabled"
@@ -110,5 +142,5 @@ class MotionSensorController:
             self.pir.close()
         print("🧹 Motion sensor cleaned up")
 
-# Global motion sensor controller instance
-motion_controller = MotionSensorController()
+# Global motion sensor controller instance - GPIO 27 (Pin 13)
+motion_controller = MotionSensorController(pir_pin=27, timeout=10, calibration_time=60)
