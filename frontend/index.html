@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home Light Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .auth-section, .control-section {
+            display: none;
+        }
+
+        .auth-section.active, .control-section.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .secondary-btn {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+            margin-top: 10px;
+        }
+
+        .secondary-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .light-control {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .light-bulb {
+            width: 120px;
+            height: 120px;
+            margin: 20px auto;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .light-bulb.on {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            box-shadow: 0 5px 40px rgba(255, 215, 0, 0.6);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .status-badge.on {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status-badge.off {
+            background: #f44336;
+            color: white;
+        }
+
+        .timer-section {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .timer-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .timer-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .timer-input input {
+            flex: 1;
+        }
+
+        .timer-input button {
+            flex: 0 0 80px;
+        }
+
+        .history-section {
+            margin-top: 30px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .history-item {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-action {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .history-time {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .user-info {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            width: auto;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #e0e0e0;
+            margin: 0;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Smart Home</h1>
+            <p>IoT Light Control System</p>
+        </div>
+
+        <div class="content">
+            <!-- Authentication Section -->
+            <div class="auth-section active" id="authSection">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="showLoginForm()">Login</button>
+                    <button class="tab-btn" onclick="showRegisterForm()">Register</button>
+                </div>
+
+                <div id="alertContainer"></div>
+
+                <!-- Login Form -->
+                <form id="loginForm" style="display: block;">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit">Login</button>
+                </form>
+
+                <!-- Register Form -->
+                <form id="registerForm" style="display: none;">
+                    <div class="form-group">
+                        <label for="registerUsername">Username</label>
+                        <input type="text" id="registerUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerEmail">Email</label>
+                        <input type="email" id="registerEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Password</label>
+                        <input type="password" id="registerPassword" required>
+                    </div>
+                    <button type="submit">Register</button>
+                </form>
+            </div>
+
+            <!-- Control Section -->
+            <div class="control-section" id="controlSection">
+                <div class="user-info">
+                    <div>
+                        <div class="user-name" id="userName">Welcome!</div>
+                    </div>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+
+                <div id="controlAlertContainer"></div>
+
+                <!-- Light Control -->
+                <div class="light-control">
+                    <div class="light-bulb" id="lightBulb">💡</div>
+                    <div class="status-badge off" id="statusBadge">OFF</div>
+                    <button onclick="toggleLight()" style="margin-top: 20px;" id="toggleBtn">
+                        Toggle Light
+                    </button>
+                </div>
+
+                <!-- Timer Section -->
+                <div class="timer-section">
+                    <h3>⏱️ Set Timer</h3>
+                    <div class="timer-input">
+                        <input type="number" id="timerSeconds" placeholder="Seconds" min="1" max="86400" value="30">
+                        <button onclick="setTimer()">Set</button>
+                    </div>
+                    <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                        Timer will turn off the light after specified seconds (max 24 hours)
+                    </p>
+                </div>
+
+                <!-- History Section -->
+                <div class="history-section">
+                    <h3>📜 Recent Actions</h3>
+                    <div id="historyContainer">
+                        <p style="text-align: center; color: #888;">Loading history...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = window.location.origin;
+        let authToken = localStorage.getItem('authToken');
+        let statusInterval = null;
+        let historyInterval = null;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            if (authToken) {
+                showControlSection();
+            }
+
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('registerForm').addEventListener('submit', handleRegister);
+        });
+
+        // Auth Functions
+        function showLoginForm() {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            clearAlerts();
+        }
+
+        function showRegisterForm() {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            clearAlerts();
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                showAlert('Logging in...', 'success');
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    authToken = data.access_token;
+                    localStorage.setItem('authToken', authToken);
+                    localStorage.setItem('username', username);
+                    showAlert('Login successful!', 'success');
+                    setTimeout(() => showControlSection(), 500);
+                } else {
+                    showAlert(data.detail || 'Login failed', 'error');
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.', 'error');
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            try {
+                showAlert('Creating account...', 'success');
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    authToken = data.access_token;
+                    localStorage.setItem('authToken', authToken);
+                    localStorage.setItem('username', username);
+                    showAlert('Registration successful!', 'success');
+                    setTimeout(() => showControlSection(), 500);
+                } else {
+                    showAlert(data.detail || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.', 'error');
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch(`${API_BASE_URL}/auth/logout`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+
+            authToken = null;
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('username');
+            clearIntervals();
+            showAuthSection();
+        }
+
+        // Control Functions
+        function showControlSection() {
+            document.getElementById('authSection').classList.remove('active');
+            document.getElementById('controlSection').classList.add('active');
+            const username = localStorage.getItem('username');
+            document.getElementById('userName').textContent = `Welcome, ${username}!`;
+            
+            updateLightStatus();
+            updateHistory();
+            
+            // Poll status every 2 seconds
+            statusInterval = setInterval(updateLightStatus, 2000);
+            // Poll history every 5 seconds
+            historyInterval = setInterval(updateHistory, 5000);
+        }
+
+        function showAuthSection() {
+            document.getElementById('controlSection').classList.remove('active');
+            document.getElementById('authSection').classList.add('active');
+            clearAlerts('control');
+        }
+
+        function clearIntervals() {
+            if (statusInterval) clearInterval(statusInterval);
+            if (historyInterval) clearInterval(historyInterval);
+        }
+
+        async function updateLightStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/light/status`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.status === 401) {
+                    logout();
+                    return;
+                }
+
+                const data = await response.json();
+                updateLightUI(data.is_on);
+            } catch (error) {
+                console.error('Status update error:', error);
+            }
+        }
+
+        function updateLightUI(isOn) {
+            const bulb = document.getElementById('lightBulb');
+            const badge = document.getElementById('statusBadge');
+
+            if (isOn) {
+                bulb.classList.add('on');
+                badge.classList.remove('off');
+                badge.classList.add('on');
+                badge.textContent = 'ON';
+            } else {
+                bulb.classList.remove('on');
+                badge.classList.remove('on');
+                badge.classList.add('off');
+                badge.textContent = 'OFF';
+            }
+        }
+
+        async function toggleLight() {
+            const btn = document.getElementById('toggleBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/light/toggle`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    updateLightUI(data.is_on);
+                    showAlert(`Light turned ${data.action}`, 'success', 'control');
+                    updateHistory();
+                } else {
+                    showAlert('Failed to toggle light', 'error', 'control');
+                }
+            } catch (error) {
+                showAlert('Network error', 'error', 'control');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Toggle Light';
+            }
+        }
+
+        async function setTimer() {
+            const seconds = parseInt(document.getElementById('timerSeconds').value);
+
+            if (!seconds || seconds < 1 || seconds > 86400) {
+                showAlert('Please enter a valid time (1-86400 seconds)', 'error', 'control');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/light/timer?seconds=${seconds}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert(data.message, 'success', 'control');
+                    updateHistory();
+                } else {
+                    showAlert(data.detail || 'Failed to set timer', 'error', 'control');
+                }
+            } catch (error) {
+                showAlert('Network error', 'error', 'control');
+            }
+        }
+
+        async function updateHistory() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/light/history?limit=10`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.history) {
+                    displayHistory(data.history);
+                }
+            } catch (error) {
+                console.error('History update error:', error);
+            }
+        }
+
+        function displayHistory(history) {
+            const container = document.getElementById('historyContainer');
+
+            if (history.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #888;">No actions yet</p>';
+                return;
+            }
+
+            container.innerHTML = history.map(item => `
+                <div class="history-item">
+                    <div>
+                        <div class="history-action">${item.action}</div>
+                        <div style="font-size: 12px; color: #666;">by ${item.username}</div>
+                    </div>
+                    <div class="history-time">${formatTime(item.timestamp)}</div>
+                </div>
+            `).join('');
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+
+            if (diff < 60) return 'Just now';
+            if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+            return date.toLocaleDateString();
+        }
+
+        function showAlert(message, type, section = 'auth') {
+            const containerId = section === 'control' ? 'controlAlertContainer' : 'alertContainer';
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<div class="alert ${type}">${message}</div>`;
+            
+            setTimeout(() => {
+                if (container.firstChild) {
+                    container.firstChild.style.opacity = '0';
+                    setTimeout(() => clearAlerts(section), 300);
+                }
+            }, 3000);
+        }
+
+        function clearAlerts(section = 'auth') {
+            const containerId = section === 'control' ? 'controlAlertContainer' : 'alertContainer';
+            document.getElementById(containerId).innerHTML = '';
+        }
+    </script>
+</body>
+</html>

@@ -1,32 +1,30 @@
 # 🏠 Smart Home IoT Light Control System
 
-A lightweight web-based IoT system for remote light control with JWT authentication, built on **Raspberry Pi 5** using **FastAPI** + **Vanilla JavaScript**.
+A lightweight web-based IoT system for remote light control with JWT authentication, built on Raspberry Pi 5 using FastAPI + Vanilla JavaScript.
 
-![Python](https://img.shields.io/badge/Python-3.11+-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green)
-![Vanilla JS](https://img.shields.io/badge/JavaScript-ES6+-yellow)
-![License](https://img.shields.io/badge/License-MIT-yellow)
-
----
+![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.121.3-009688.svg)
+![Vanilla JS](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ## ✨ Features
 
 | Feature | Description |
 |---------|-------------|
-| 🔐 **Secure Authentication** | JWT-based user login system with bcrypt password hashing |
-| 💡 **Remote Control** | Toggle lights ON/OFF from any device on your network |
-| ⏱️ **Timer Function** | Schedule automatic light shutoff |
-| 📊 **Real-Time Status** | Live updates of light state |
-| 📜 **Action History** | Track all control actions with timestamps |
-| 📱 **Responsive UI** | Modern interface works on desktop and mobile |
-| 🔌 **GPIO Control** | Direct hardware control via Raspberry Pi GPIO pins |
-| ⚡ **Lightweight** | No frontend framework - fast and efficient |
-
----
+| 🔐 Secure Authentication | JWT-based user login system with bcrypt password hashing |
+| 💡 Remote Control | Toggle lights ON/OFF from any device on your network |
+| ⏱️ Timer Function | Schedule automatic light shutoff (1 sec - 24 hours) |
+| 📊 Real-Time Status | Live updates of light state every 2 seconds |
+| 📜 Action History | Track all control actions with timestamps |
+| 📱 Responsive UI | Modern interface works on desktop and mobile |
+| 🔌 GPIO Control | Direct hardware control via Raspberry Pi GPIO pins |
+| ⚡ Lightweight | No frontend framework - fast and efficient |
+| 🔒 HTTPS Support | Secure encrypted communication |
 
 ## 🛠️ Tech Stack
 
 ### Backend
+
 - **FastAPI** - Modern Python web framework with auto-generated API docs
 - **SQLAlchemy** - SQL toolkit and ORM
 - **SQLite** - Lightweight database
@@ -35,23 +33,24 @@ A lightweight web-based IoT system for remote light control with JWT authenticat
 - **GPIO Zero** - Simple GPIO control library
 
 ### Frontend
+
 - **Vanilla JavaScript (ES6+)** - Modern JS without frameworks
 - **CSS3** - Responsive, modern styling
 - **Fetch API** - HTTP requests to backend
 - **Single Page Application** - One HTML file (~15KB total)
 
 ### Why Vanilla JS?
-- ✅ **Tiny footprint** - 15KB vs 250MB+ with React
-- ✅ **Fast loading** - Instant, no build step
-- ✅ **Perfect for IoT** - Appropriate technology for embedded systems
-- ✅ **No dependencies** - No npm, no node_modules
-- ✅ **Still modern** - ES6+, async/await, modern CSS
 
----
+- ✅ Tiny footprint - 15KB vs 250MB+ with React
+- ✅ Fast loading - Instant, no build step
+- ✅ Perfect for IoT - Appropriate technology for embedded systems
+- ✅ No dependencies - No npm, no node_modules
+- ✅ Still modern - ES6+, async/await, modern CSS
 
 ## 📋 Prerequisites
 
 ### Hardware
+
 - Raspberry Pi 5 (or Pi 4/3B+)
 - 32GB microSD card (minimum 16GB)
 - LED + 330Ω resistor
@@ -59,13 +58,12 @@ A lightweight web-based IoT system for remote light control with JWT authenticat
 - Power supply for Raspberry Pi
 
 ### Software
+
 - Raspberry Pi OS (64-bit) - Latest version
 - SSH enabled (for headless setup)
 - Network connection (WiFi or Ethernet)
-- **Python 3.11+** (pre-installed on Pi OS)
-- **No Node.js required!** ✅
-
----
+- Python 3.11+ (pre-installed on Pi OS)
+- No Node.js required! ✅
 
 ## ⚡ Quick Start
 
@@ -103,7 +101,8 @@ python3 -c "import secrets; print(secrets.token_hex(32))"
 nano backend/.env
 ```
 
-**backend/.env should contain:**
+`backend/.env` should contain:
+
 ```env
 JWT_SECRET_KEY=<paste-your-generated-key-here>
 DATABASE_URL=sqlite:///./smart_light.db
@@ -121,22 +120,34 @@ deactivate
 cd ..
 ```
 
-### 5. Start the Application
+### 5. Generate SSL Certificates (HTTPS)
+
+```bash
+cd backend
+openssl req -x509 -newkey rsa:4096 -nodes -keyout key.pem -out cert.pem -days 365 -subj "/CN=smartlight-an.local"
+cd ..
+```
+
+### 6. Start the Application
 
 ```bash
 cd backend
 source venv/bin/activate
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# Start with HTTPS
+uvicorn main:app --reload --host 0.0.0.0 --port 8000 \
+  --ssl-keyfile=./key.pem \
+  --ssl-certfile=./cert.pem
 ```
 
-### 6. Access the Application
+### 7. Access the Application
 
-- **Web Interface:** `http://<your-pi-ip>:8000`
-- **API Documentation:** `http://<your-pi-ip>:8000/docs` ⭐ (Auto-generated Swagger UI!)
+- **Web Interface:** `https://<your-pi-ip>:8000` or `https://smartlight-an.local:8000`
+- **API Documentation:** `https://<your-pi-ip>:8000/docs` ⭐ (Auto-generated Swagger UI!)
 
 Find your Pi's IP with: `hostname -I`
 
----
+**Note:** You'll see a security warning for self-signed certificates - click "Advanced" → "Proceed" to continue.
 
 ## 📡 API Reference
 
@@ -161,25 +172,26 @@ Find your Pi's IP with: `hostname -I`
 
 **Register a new user:**
 ```bash
-curl -X POST http://10.200.27.134:8000/auth/register \
+curl -X POST https://smartlight-an.local:8000/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"username":"john","email":"john@example.com","password":"securepass123"}'
+  -d '{"username":"john","email":"john@example.com","password":"securepass123"}' \
+  --insecure
 ```
 
 **Login and get token:**
 ```bash
-curl -X POST http://10.200.27.134:8000/auth/login \
+curl -X POST https://smartlight-an.local:8000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"john","password":"securepass123"}'
+  -d '{"username":"john","password":"securepass123"}' \
+  --insecure
 ```
 
 **Toggle light (use token from login):**
 ```bash
-curl -X POST http://10.200.27.134:8000/light/toggle \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+curl -X POST https://smartlight-an.local:8000/light/toggle \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  --insecure
 ```
-
----
 
 ## 📁 Project Structure
 
@@ -193,6 +205,8 @@ smart-home-light/
 │   ├── auth.py                # JWT authentication logic
 │   ├── gpio_control.py        # LED hardware control
 │   ├── requirements.txt       # Python dependencies
+│   ├── key.pem               # SSL private key (not in git)
+│   ├── cert.pem              # SSL certificate (not in git)
 │   └── smart_light.db         # SQLite database (created on init)
 │
 ├── frontend/                  # Frontend
@@ -204,8 +218,6 @@ smart-home-light/
 └── README.md                 # This file
 ```
 
----
-
 ## 🔧 Development Guide
 
 ### Backend Development
@@ -215,11 +227,13 @@ smart-home-light/
 cd backend
 source venv/bin/activate
 
-# Run with auto-reload
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+# Run with auto-reload and HTTPS
+uvicorn main:app --reload --host 0.0.0.0 --port 8000 \
+  --ssl-keyfile=./key.pem \
+  --ssl-certfile=./cert.pem
 
 # Access interactive API docs at:
-# http://localhost:8000/docs
+# https://localhost:8000/docs
 ```
 
 ### Frontend Development
@@ -243,11 +257,10 @@ pip install <package-name>
 pip freeze > requirements.txt
 ```
 
----
-
 ## 🐛 Troubleshooting
 
 ### Can't Connect via SSH
+
 ```bash
 # Check Pi is reachable
 ping smartlight-an.local -c 4
@@ -257,6 +270,7 @@ ssh username@<pi-ip-address>
 ```
 
 ### Backend Won't Start
+
 ```bash
 # Check virtual environment is activated
 source backend/venv/bin/activate
@@ -268,7 +282,14 @@ pip install -r requirements.txt
 cat backend/.env
 ```
 
+### SSL Certificate Warnings
+
+This is normal for self-signed certificates! Click "Advanced" → "Proceed to site" in your browser.
+
+For production deployment, use Let's Encrypt for trusted certificates.
+
 ### LED Not Working
+
 ```bash
 # Add user to GPIO group
 sudo usermod -a -G gpio $USER
@@ -279,11 +300,13 @@ python3 -c "from gpiozero import LED; led = LED(17); led.on()"
 ```
 
 ### JWT Token Errors (401 Unauthorized)
+
 - Login again to get fresh token (tokens expire after 1 hour)
 - Clear browser localStorage
-- Verify `JWT_SECRET_KEY` in backend/.env
+- Verify `JWT_SECRET_KEY` in `backend/.env`
 
 ### Port Already in Use
+
 ```bash
 # Kill process on port 8000
 sudo lsof -ti:8000 | xargs kill -9
@@ -292,7 +315,18 @@ sudo lsof -ti:8000 | xargs kill -9
 uvicorn main:app --reload --host 0.0.0.0 --port 8080
 ```
 
----
+### Switching Networks
+
+```bash
+# Connect to preconfigured WiFi on MacOS
+sudo nmcli connection up "preconfigured"
+
+# Connect to hotspot/other networks
+sudo nmcli connection up "(user's network name)"
+
+# Check current connection
+nmcli connection show --active
+```
 
 ## 🔒 Security Features
 
@@ -302,15 +336,16 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8080
 - ✅ **SQL Injection Prevention:** Parameterized queries via SQLAlchemy ORM
 - ✅ **CORS Protection:** Configured allowed origins
 - ✅ **Environment Variables:** Secrets stored in .env (not in git)
+- ✅ **HTTPS/TLS:** Encrypted traffic with SSL certificates
+- ✅ **Duplicate Prevention:** Username and email uniqueness enforced
 
-⚠️ **Note:** This setup is suitable for local networks and learning. For production deployment, add:
-- HTTPS/TLS encryption
+⚠️ **Note:** This setup uses self-signed certificates suitable for local networks and learning. For production deployment, add:
+
+- Let's Encrypt certificates (free, trusted)
 - Rate limiting
 - Stronger password requirements
 - Input validation & sanitization
 - Security headers
-
----
 
 ## 🚀 Future Enhancements
 
@@ -323,8 +358,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8080
 - [ ] Motion sensor automation
 - [ ] Usage analytics dashboard
 - [ ] Docker containerization
-
----
+- [ ] Cloud deployment support
 
 ## 📊 Performance Comparison
 
@@ -338,8 +372,6 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8080
 
 **Perfect for IoT and embedded systems!** ✅
 
----
-
 ## 📚 Learning Resources
 
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
@@ -348,33 +380,27 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8080
 - [JWT Introduction](https://jwt.io/introduction)
 - [Raspberry Pi Documentation](https://www.raspberrypi.com/documentation/)
 
----
-
 ## 🎓 Project Context
 
-Built for **Embedded Systems Course | November 2024**
+**Built for Embedded Systems Course | November 2024**
 
 This project demonstrates:
+
 - Modern backend development with FastAPI
 - IoT hardware integration
 - RESTful API design
 - Secure authentication implementation
 - Appropriate technology choices for embedded systems
 - Lightweight frontend for resource-constrained devices
-
----
+- HTTPS/SSL implementation
 
 ## 📄 License
 
 MIT License - Feel free to use this project for learning!
 
----
-
 ## 🤝 Contributing
 
 This is an educational project, but suggestions are welcome! Open an issue or submit a pull request.
-
----
 
 ## 📧 Contact
 
