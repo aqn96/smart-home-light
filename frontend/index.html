@@ -167,6 +167,119 @@
             color: white;
         }
 
+        /* NEW: Motion sensor styles */
+        .motion-section {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #667eea;
+        }
+
+        .motion-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .motion-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .motion-indicator.active {
+            background: #4caf50;
+            box-shadow: 0 0 10px #4caf50;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 30px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        .timeout-control {
+            margin-top: 15px;
+        }
+
+        .timeout-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .timeout-btn {
+            padding: 8px;
+            font-size: 13px;
+            border-radius: 6px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .timeout-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
         .timer-section {
             background: #f5f5f5;
             padding: 20px;
@@ -318,6 +431,10 @@
             .header h1 {
                 font-size: 24px;
             }
+
+            .timeout-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
@@ -325,7 +442,7 @@
     <div class="container">
         <div class="header">
             <h1>🏠 Smart Home</h1>
-            <p>IoT Light Control System</p>
+            <p>IoT Light Control System with Motion Sensor</p>
         </div>
 
         <div class="content">
@@ -380,12 +497,43 @@
 
                 <div id="controlAlertContainer"></div>
 
+                <!-- NEW: Motion Sensor Section -->
+                <div class="motion-section">
+                    <h3>
+                        🎯 Motion Sensor
+                        <span class="motion-indicator" id="motionIndicator"></span>
+                    </h3>
+                    
+                    <div class="toggle-switch">
+                        <span>Enable Motion Control</span>
+                        <label class="switch">
+                            <input type="checkbox" id="motionToggle" onchange="toggleMotionSensor()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="timeout-control">
+                        <label>Auto-off Timeout</label>
+                        <div class="timeout-buttons">
+                            <button class="timeout-btn" onclick="setMotionTimeout(5)">5s</button>
+                            <button class="timeout-btn active" onclick="setMotionTimeout(10)">10s</button>
+                            <button class="timeout-btn" onclick="setMotionTimeout(30)">30s</button>
+                            <button class="timeout-btn" onclick="setMotionTimeout(60)">60s</button>
+                        </div>
+                    </div>
+
+                    <p style="font-size: 12px; color: #666; margin-top: 15px;">
+                        💡 Motion detected → Light ON automatically<br>
+                        ⏱️ No motion → Light OFF after timeout
+                    </p>
+                </div>
+
                 <!-- Light Control -->
                 <div class="light-control">
                     <div class="light-bulb" id="lightBulb">💡</div>
                     <div class="status-badge off" id="statusBadge">OFF</div>
                     <button onclick="toggleLight()" style="margin-top: 20px;" id="toggleBtn">
-                        Toggle Light
+                        Manual Toggle
                     </button>
                 </div>
 
@@ -418,6 +566,7 @@
         let authToken = localStorage.getItem('authToken');
         let statusInterval = null;
         let historyInterval = null;
+        let motionInterval = null;
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
@@ -530,11 +679,12 @@
             document.getElementById('userName').textContent = `Welcome, ${username}!`;
             
             updateLightStatus();
+            updateMotionStatus();  // NEW
             updateHistory();
             
             // Poll status every 2 seconds
             statusInterval = setInterval(updateLightStatus, 2000);
-            // Poll history every 5 seconds
+            motionInterval = setInterval(updateMotionStatus, 2000);  // NEW
             historyInterval = setInterval(updateHistory, 5000);
         }
 
@@ -546,6 +696,7 @@
 
         function clearIntervals() {
             if (statusInterval) clearInterval(statusInterval);
+            if (motionInterval) clearInterval(motionInterval);  // NEW
             if (historyInterval) clearInterval(historyInterval);
         }
 
@@ -564,6 +715,69 @@
                 updateLightUI(data.is_on);
             } catch (error) {
                 console.error('Status update error:', error);
+            }
+        }
+
+        // NEW: Motion sensor functions
+        async function updateMotionStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/motion/status`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('motionToggle').checked = data.enabled;
+                    
+                    const indicator = document.getElementById('motionIndicator');
+                    if (data.motion_detected) {
+                        indicator.classList.add('active');
+                    } else {
+                        indicator.classList.remove('active');
+                    }
+                }
+            } catch (error) {
+                console.error('Motion status error:', error);
+            }
+        }
+
+        async function toggleMotionSensor() {
+            const enabled = document.getElementById('motionToggle').checked;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/motion/settings?enabled=${enabled}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    showAlert(`Motion sensor ${enabled ? 'enabled' : 'disabled'}`, 'success', 'control');
+                    updateHistory();
+                }
+            } catch (error) {
+                showAlert('Failed to update motion sensor', 'error', 'control');
+            }
+        }
+
+        async function setMotionTimeout(seconds) {
+            // Update button styles
+            document.querySelectorAll('.timeout-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/motion/settings?timeout=${seconds}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    showAlert(`Timeout set to ${seconds}s`, 'success', 'control');
+                    updateHistory();
+                }
+            } catch (error) {
+                showAlert('Failed to update timeout', 'error', 'control');
             }
         }
 
@@ -608,7 +822,7 @@
                 showAlert('Network error', 'error', 'control');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Toggle Light';
+                btn.textContent = 'Manual Toggle';
             }
         }
 

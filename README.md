@@ -1,116 +1,172 @@
+**Here's a focused README.md based on exactly what you built:**
+
+```markdown
 # 🏠 Smart Home IoT Light Control System
 
-A lightweight web-based IoT system for remote light control with JWT authentication, built on Raspberry Pi 5 using FastAPI + Vanilla JavaScript.
+A dual-mode IoT light control system with motion detection and daylight awareness, built on Raspberry Pi 5 using FastAPI + Vanilla JavaScript. Control lights manually through a web interface OR automatically via motion sensor - both modes work together seamlessly.
 
 ![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.121.3-009688.svg)
-![Vanilla JS](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)
+![Vanilla JS](https://img.shields.io/badge/Vanilla%20JS-ES6+-yellow.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-## ✨ Features
+## ✨ Key Features
 
 | Feature | Description |
 |---------|-------------|
-| 🔐 Secure Authentication | JWT-based user login system with bcrypt password hashing |
-| 💡 Remote Control | Toggle lights ON/OFF from any device on your network |
-| ⏱️ Timer Function | Schedule automatic light shutoff (1 sec - 24 hours) |
-| 📊 Real-Time Status | Live updates of light state every 2 seconds |
-| 📜 Action History | Track all control actions with timestamps |
-| 📱 Responsive UI | Modern interface works on desktop and mobile |
-| 🔌 GPIO Control | Direct hardware control via Raspberry Pi GPIO pins |
-| ⚡ Lightweight | No frontend framework - fast and efficient |
-| 🔒 HTTPS Support | Secure encrypted communication |
+| 🎮 **Dual Control Mode** | Manual web control AND automatic motion detection work simultaneously |
+| 🎯 **Motion Detection** | PIR sensor automatically triggers lights when movement detected |
+| 🌅 **Daylight Awareness** | Only activates on motion when it's dark (saves energy) |
+| 💡 **Real Light Control** | 5V relay switches actual lights |
+| 🔐 **Secure Login** | JWT authentication with password hashing |
+| ⏱️ **Timer Function** | Auto-off after configurable timeout |
+| 📜 **Action History** | Logs all manual and automatic actions |
+| 📱 **Responsive UI** | Works on desktop and mobile |
+| 🔒 **HTTPS** | Secure encrypted communication |
+
+## 🔬 How It Works
+
+### Dual Hybrid System:
+
+```
+Manual Mode: User clicks toggle → Light changes state (always works)
+Auto Mode:   Motion detected + Dark → Light turns ON automatically
+             No motion for timeout → Light turns OFF
+```
+
+**Smart Logic:**
+- Motion sensor checks ambient light before activating (energy efficient)
+- Manual control always overrides automatic behavior
+- Web interface shows real-time status from both modes
+- All actions logged with timestamps
 
 ## 🛠️ Tech Stack
 
 ### Backend
-
-- **FastAPI** - Modern Python web framework with auto-generated API docs
-- **SQLAlchemy** - SQL toolkit and ORM
-- **SQLite** - Lightweight database
-- **JWT (python-jose)** - Token-based authentication
-- **Passlib** - Password hashing with bcrypt
-- **GPIO Zero** - Simple GPIO control library
+- **FastAPI** - Modern Python web framework
+- **SQLAlchemy** + **SQLite** - Database and ORM
+- **JWT (python-jose)** - Token authentication
+- **Passlib** - Password hashing (bcrypt)
+- **GPIO Zero** - Raspberry Pi GPIO control
+- **SpiDev** - SPI communication for ADC
 
 ### Frontend
-
-- **Vanilla JavaScript (ES6+)** - Modern JS without frameworks
-- **CSS3** - Responsive, modern styling
-- **Fetch API** - HTTP requests to backend
-- **Single Page Application** - One HTML file (~15KB total)
+- **Vanilla JavaScript (ES6+)** - No frameworks, ~25KB
+- **CSS3** - Responsive styling
+- **Fetch API** - Backend communication
+- **Single Page App** - One HTML file
 
 ### Why Vanilla JS?
+- ✅ Lightweight - 25KB vs 250MB with frameworks
+- ✅ Fast - Instant load, no build step
+- ✅ Perfect for IoT devices
+- ✅ Modern - ES6+, async/await
 
-- ✅ Tiny footprint - 15KB vs 250MB+ with React
-- ✅ Fast loading - Instant, no build step
-- ✅ Perfect for IoT - Appropriate technology for embedded systems
-- ✅ No dependencies - No npm, no node_modules
-- ✅ Still modern - ES6+, async/await, modern CSS
+## 🔌 Hardware Used
+
+| Component | Model | Purpose |
+|-----------|-------|---------|
+| Microcontroller | Raspberry Pi 5 | Main controller |
+| PIR Motion Sensor | HC-SR501 | Motion detection |
+| Photoresistor | GL5528 LDR | Ambient light sensing |
+| ADC Converter | ADC0834CCN | Read analog LDR values |
+| Relay Module | SRD-05VDC-SL-C | Switch real lights |
+| Resistors | 10kΩ, 330Ω | Voltage dividers |
+| LED | Standard 5mm | Status indicator |
+| Breadboard | 400-point | Circuit prototyping |
+| Jumper Wires | M-M, M-F | Connections |
+
+**Hardware Cost:** ~$25-30 (excluding Raspberry Pi)
 
 ## 📋 Prerequisites
 
 ### Hardware
-
-- Raspberry Pi 5 (or Pi 4/3B+)
-- 32GB microSD card (minimum 16GB)
-- LED + 330Ω resistor
-- Breadboard + jumper wires
-- Power supply for Raspberry Pi
+- Raspberry Pi 5 (or Pi 4)
+- microSD card (16GB+)
+- Components listed above
+- Power supply
 
 ### Software
-
-- Raspberry Pi OS (64-bit) - Latest version
-- SSH enabled (for headless setup)
-- Network connection (WiFi or Ethernet)
-- Python 3.11+ (pre-installed on Pi OS)
-- No Node.js required! ✅
+- Raspberry Pi OS (64-bit)
+- Python 3.11+
+- SSH enabled
+- Network connection
 
 ## ⚡ Quick Start
 
-### 1. Hardware Setup
+### 1. Hardware Wiring
 
-Connect your LED to the Raspberry Pi:
-
+**PIR Motion Sensor:**
 ```
-GPIO 17 (Pin 11) → 330Ω Resistor → LED Anode (+) Long Leg
-GND (Pin 6)      → LED Cathode (-) Short Leg
+VCC → Pi Pin 2 (5V)
+GND → Pi Pin 6 (GND)
+OUT → Pi Pin 13 (GPIO 27)
+```
+
+**Status LED:**
+```
+GPIO 18 (Pin 12) → 330Ω → LED (+)
+GND (Pin 6) → LED (-)
+```
+
+**Relay Module:**
+```
+VCC → Pin 2 (5V)
+GND → Pin 6 (GND)
+IN  → Pin 11 (GPIO 17)
+```
+
+**LDR + ADC0834:**
+```
+3.3V → LDR → ADC CH0 → 10kΩ → GND
+
+ADC Pin 1 (CS)  → GPIO 8  (SPI CE0)
+ADC Pin 4 (GND) → GND
+ADC Pin 5 (DI)  → GPIO 10 (SPI MOSI)
+ADC Pin 6 (DO)  → GPIO 9  (SPI MISO)
+ADC Pin 7 (CLK) → GPIO 11 (SPI SCLK)
+ADC Pin 8 (VCC) → 3.3V
 ```
 
 ### 2. Software Installation
 
 ```bash
-# SSH into your Raspberry Pi
-ssh username@smartlight-an.local
-
-# Clone the repository
+# Clone repository
 git clone https://github.com/aqn96/smart-home-light.git
 cd smart-home-light
 
-# Run automated installation
+# Run installation script
 chmod +x install.sh
 ./install.sh
 ```
 
-### 3. Configure Environment
+### 3. Enable SPI
 
 ```bash
-# Generate JWT secret key
+sudo raspi-config
+# Interface Options → SPI → Enable
+sudo reboot
+```
+
+### 4. Configure Environment
+
+```bash
+# Generate secret key
 python3 -c "import secrets; print(secrets.token_hex(32))"
 
-# Edit backend/.env and add the generated key
+# Add to backend/.env
 nano backend/.env
 ```
 
-`backend/.env` should contain:
-
+**backend/.env:**
 ```env
-JWT_SECRET_KEY=<paste-your-generated-key-here>
+JWT_SECRET_KEY=<your-generated-key>
 DATABASE_URL=sqlite:///./smart_light.db
 BACKEND_HOST=0.0.0.0
 BACKEND_PORT=8000
 ```
 
-### 4. Initialize Database
+### 5. Initialize Database
 
 ```bash
 cd backend
@@ -120,7 +176,7 @@ deactivate
 cd ..
 ```
 
-### 5. Generate SSL Certificates (HTTPS)
+### 6. Generate SSL Certificates
 
 ```bash
 cd backend
@@ -128,285 +184,133 @@ openssl req -x509 -newkey rsa:4096 -nodes -keyout key.pem -out cert.pem -days 36
 cd ..
 ```
 
-### 6. Start the Application
+### 7. Start Server
 
 ```bash
 cd backend
 source venv/bin/activate
-
-# Start with HTTPS
 uvicorn main:app --reload --host 0.0.0.0 --port 8000 \
   --ssl-keyfile=./key.pem \
   --ssl-certfile=./cert.pem
 ```
 
-### 7. Access the Application
-
-- **Web Interface:** `https://<your-pi-ip>:8000` or `https://smartlight-an.local:8000`
-- **API Documentation:** `https://<your-pi-ip>:8000/docs` ⭐ (Auto-generated Swagger UI!)
-
-Find your Pi's IP with: `hostname -I`
-
-**Note:** You'll see a security warning for self-signed certificates - click "Advanced" → "Proceed" to continue.
-
-## 📡 API Reference
-
-### Authentication Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/auth/register` | Create new user account | ❌ |
-| POST | `/auth/login` | Login and receive JWT token | ❌ |
-| POST | `/auth/logout` | Revoke current token | ✅ |
-
-### Light Control Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/light/status` | Get current light state | ✅ |
-| POST | `/light/toggle` | Toggle light ON/OFF | ✅ |
-| POST | `/light/timer` | Set auto-off timer (seconds) | ✅ |
-| GET | `/light/history` | View action log | ✅ |
-
-### Example Usage
-
-**Register a new user:**
-```bash
-curl -X POST https://smartlight-an.local:8000/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"john","email":"john@example.com","password":"securepass123"}' \
-  --insecure
+**Expected output:**
+```
+🚀 Server started successfully!
+💡 Manual toggle control: ACTIVE
+🎯 Motion sensor control: ACTIVE
+🌅 Daylight detection: ACTIVE
 ```
 
-**Login and get token:**
-```bash
-curl -X POST https://smartlight-an.local:8000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"john","password":"securepass123"}' \
-  --insecure
-```
+### 8. Access Application
 
-**Toggle light (use token from login):**
-```bash
-curl -X POST https://smartlight-an.local:8000/light/toggle \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
-  --insecure
-```
+- **Web Interface:** https://smartlight-an.local:8000
+- **API Docs:** https://smartlight-an.local:8000/docs
+
+## 📡 API Endpoints
+
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/auth/register` | Register new user |
+| POST | `/auth/login` | Login and get JWT |
+| POST | `/auth/logout` | Revoke token |
+
+### Light Control
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/light/status` | Get light state |
+| POST | `/light/toggle` | Manual toggle |
+| POST | `/light/timer` | Set auto-off timer |
+| GET | `/light/history` | View action log |
+
+### Motion Sensor
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/motion/status` | Get sensor status |
+| POST | `/motion/settings` | Configure motion sensor |
+
+### Light Sensor
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/sensor/light` | Get ambient light level |
 
 ## 📁 Project Structure
 
 ```
 smart-home-light/
-├── backend/                    # FastAPI Backend
-│   ├── venv/                  # Virtual environment (not in git)
-│   ├── .env                   # Environment variables (not in git)
-│   ├── main.py                # FastAPI application & routes
-│   ├── database.py            # SQLAlchemy models & DB setup
-│   ├── auth.py                # JWT authentication logic
-│   ├── gpio_control.py        # LED hardware control
-│   ├── requirements.txt       # Python dependencies
-│   ├── key.pem               # SSL private key (not in git)
-│   ├── cert.pem              # SSL certificate (not in git)
-│   └── smart_light.db         # SQLite database (created on init)
-│
-├── frontend/                  # Frontend
-│   └── index.html            # Single-page application (~15KB)
-│
-├── .gitignore                # Git ignore rules
-├── .env.example              # Environment template
-├── install.sh                # Automated installation script
-└── README.md                 # This file
-```
-
-## 🔧 Development Guide
-
-### Backend Development
-
-```bash
-# Activate virtual environment
-cd backend
-source venv/bin/activate
-
-# Run with auto-reload and HTTPS
-uvicorn main:app --reload --host 0.0.0.0 --port 8000 \
-  --ssl-keyfile=./key.pem \
-  --ssl-certfile=./cert.pem
-
-# Access interactive API docs at:
-# https://localhost:8000/docs
-```
-
-### Frontend Development
-
-The frontend is a single `index.html` file served by FastAPI. Just edit and refresh browser!
-
-```bash
-# Edit frontend
-nano ../frontend/index.html
-
-# Server auto-reloads with --reload flag
-# Just refresh browser to see changes
-```
-
-### Adding New Python Dependencies
-
-```bash
-cd backend
-source venv/bin/activate
-pip install <package-name>
-pip freeze > requirements.txt
+├── backend/
+│   ├── main.py              # FastAPI routes
+│   ├── database.py          # Database models
+│   ├── auth.py              # JWT authentication
+│   ├── gpio_control.py      # LED/relay control
+│   ├── motion_control.py    # PIR sensor logic
+│   ├── light_sensor.py      # LDR/ADC reading
+│   ├── requirements.txt     # Dependencies
+│   └── smart_light.db       # SQLite database
+├── frontend/
+│   └── index.html          # Web interface (~25KB)
+├── install.sh              # Setup script
+└── README.md
 ```
 
 ## 🐛 Troubleshooting
 
-### Can't Connect via SSH
-
-```bash
-# Check Pi is reachable
-ping smartlight-an.local -c 4
-
-# Try IP address instead
-ssh username@<pi-ip-address>
-```
-
-### Backend Won't Start
-
-```bash
-# Check virtual environment is activated
-source backend/venv/bin/activate
-
-# Verify all packages installed
-pip install -r requirements.txt
-
-# Check .env file exists
-cat backend/.env
-```
-
-### SSL Certificate Warnings
-
-This is normal for self-signed certificates! Click "Advanced" → "Proceed to site" in your browser.
-
-For production deployment, use Let's Encrypt for trusted certificates.
-
-### LED Not Working
-
+### Motion Sensor Not Working
 ```bash
 # Add user to GPIO group
 sudo usermod -a -G gpio $USER
 sudo reboot
-
-# Test GPIO directly
-python3 -c "from gpiozero import LED; led = LED(17); led.on()"
 ```
 
-### JWT Token Errors (401 Unauthorized)
+### LDR Not Reading
+```bash
+# Check SPI is enabled
+lsmod | grep spi
+```
 
-- Login again to get fresh token (tokens expire after 1 hour)
+### Token Expired
+- Login again (tokens expire after 1 hour)
 - Clear browser localStorage
-- Verify `JWT_SECRET_KEY` in `backend/.env`
 
-### Port Already in Use
+## 🔒 Security
 
-```bash
-# Kill process on port 8000
-sudo lsof -ti:8000 | xargs kill -9
-
-# Or use different port
-uvicorn main:app --reload --host 0.0.0.0 --port 8080
-```
-
-### Switching Networks
-
-```bash
-# Connect to preconfigured WiFi on MacOS
-sudo nmcli connection up "preconfigured"
-
-# Connect to hotspot/other networks
-sudo nmcli connection up "(user's network name)"
-
-# Check current connection
-nmcli connection show --active
-```
-
-## 🔒 Security Features
-
-- ✅ **Password Hashing:** Bcrypt with salt (10 rounds)
-- ✅ **JWT Tokens:** HS256 signed, 1-hour expiration
-- ✅ **Token Revocation:** Logout blocklists tokens in database
-- ✅ **SQL Injection Prevention:** Parameterized queries via SQLAlchemy ORM
-- ✅ **CORS Protection:** Configured allowed origins
-- ✅ **Environment Variables:** Secrets stored in .env (not in git)
-- ✅ **HTTPS/TLS:** Encrypted traffic with SSL certificates
-- ✅ **Duplicate Prevention:** Username and email uniqueness enforced
-
-⚠️ **Note:** This setup uses self-signed certificates suitable for local networks and learning. For production deployment, add:
-
-- Let's Encrypt certificates (free, trusted)
-- Rate limiting
-- Stronger password requirements
-- Input validation & sanitization
-- Security headers
-
-## 🚀 Future Enhancements
-
-- [ ] WebSocket real-time updates (no polling)
-- [ ] Multiple light support with room grouping
-- [ ] PWM brightness control (0-100%)
-- [ ] RGB color control
-- [ ] Mobile PWA (Progressive Web App)
-- [ ] Voice control (Alexa/Google Home integration)
-- [ ] Motion sensor automation
-- [ ] Usage analytics dashboard
-- [ ] Docker containerization
-- [ ] Cloud deployment support
-
-## 📊 Performance Comparison
-
-| Metric | This Project (Vanilla JS) | React Alternative |
-|--------|---------------------------|-------------------|
-| Frontend Size | ~15KB | ~250MB |
-| Initial Load | <100ms | 1-2 seconds |
-| Memory Usage | ~5MB | ~50MB+ |
-| Build Time | None | 30-60 seconds |
-| Dependencies | 0 | 1000+ packages |
-
-**Perfect for IoT and embedded systems!** ✅
-
-## 📚 Learning Resources
-
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Modern JavaScript (ES6+)](https://javascript.info/)
-- [GPIO Zero Documentation](https://gpiozero.readthedocs.io/)
-- [JWT Introduction](https://jwt.io/introduction)
-- [Raspberry Pi Documentation](https://www.raspberrypi.com/documentation/)
+- ✅ Bcrypt password hashing
+- ✅ JWT tokens (1-hour expiration)
+- ✅ HTTPS/TLS encryption
+- ✅ SQL injection prevention
+- ✅ Environment variable secrets
 
 ## 🎓 Project Context
 
 **Built for Embedded Systems Course | November 2024**
 
-This project demonstrates:
-
-- Modern backend development with FastAPI
+Demonstrates:
 - IoT hardware integration
 - RESTful API design
-- Secure authentication implementation
-- Appropriate technology choices for embedded systems
-- Lightweight frontend for resource-constrained devices
-- HTTPS/SSL implementation
+- Dual-mode control system
+- Sensor data processing
+- Secure authentication
+- Energy-efficient automation
 
 ## 📄 License
 
-MIT License - Feel free to use this project for learning!
-
-## 🤝 Contributing
-
-This is an educational project, but suggestions are welcome! Open an issue or submit a pull request.
+MIT License
 
 ## 📧 Contact
 
-**Project by:** aqn96  
 **GitHub:** [github.com/aqn96/smart-home-light](https://github.com/aqn96/smart-home-light)
+
+⭐ **Star if helpful!**
+```
 
 ---
 
-⭐ **Star this repo if you found it helpful!**
+**This version:**
+- ✅ Focuses on your dual manual/automatic system
+- ✅ Only mentions hardware you actually have
+- ✅ Removes "future features" speculation
+- ✅ Keeps it concise and focused
+- ✅ Maintains your GitHub style
+
+**Ready to copy and push!** 🚀
