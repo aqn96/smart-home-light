@@ -2,11 +2,28 @@
 
 A dual-mode IoT light control system with motion detection, built on Raspberry Pi 5 using FastAPI + Vanilla JavaScript. Control lights manually through a web interface OR automatically via motion sensor - both modes work together seamlessly.
 
-![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.121+-green.svg)
-![Vanilla JS](https://img.shields.io/badge/Vanilla%20JS-ES6+-yellow.svg)
-![Raspberry Pi 5](https://img.shields.io/badge/Raspberry%20Pi-5-red.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.11+-blue.svg) ![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg) ![Vanilla JS](https://img.shields.io/badge/JavaScript-Vanilla-yellow.svg) ![Raspberry Pi 5](https://img.shields.io/badge/Raspberry%20Pi-5-red.svg) ![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)
+
+---
+
+## ✅ Project Status
+
+**Current Version:** v1.0 - Fully Functional  
+**Last Updated:** November 2024  
+**Status:** ✅ Complete - All course requirements met
+
+### Implemented Features:
+- ✅ Remote light control via web interface
+- ✅ Real-time status updates
+- ✅ JWT authentication with secure login
+- ✅ Configurable auto-off timer (5s, 10s, 30s, 60s)
+- ✅ PIR motion sensor automation
+- ✅ Action history logging
+- ✅ HTTPS encrypted communication
+- ✅ Responsive mobile-friendly UI
+- ✅ Dual control mode (manual + automatic)
+
+---
 
 ## ✨ Key Features
 
@@ -21,27 +38,32 @@ A dual-mode IoT light control system with motion detection, built on Raspberry P
 | 📱 **Responsive UI** | Works on desktop and mobile browsers |
 | 🔒 **HTTPS** | Secure encrypted communication |
 
+---
+
 ## 🔬 How It Works
 
-### Dual Hybrid System:
-```
-Manual Mode: User clicks toggle → LED changes state (always works)
-Auto Mode:   Motion detected → LED turns ON automatically
-             No motion for timeout → LED turns OFF
-```
+### Manual Control
+User clicks toggle button on web interface → LED changes state instantly
 
-**Smart Logic:**
-- Motion sensor activates LED when movement detected
-- Manual control always works independently
+### Automatic Motion Detection
+- PIR motion sensor detects movement → LED turns ON automatically
+- No motion detected for timeout period → LED turns OFF automatically
 - Configurable auto-off timeout (5-60 seconds)
-- Web interface shows real-time status from both modes
-- All actions logged with timestamps in database
+- Both modes work independently and simultaneously
+
+### Smart Logic
+- Motion sensor activates LED when movement detected
+- Manual control always works regardless of motion sensor state
+- Web interface shows real-time status from both control modes
+- All actions (manual and automatic) logged with timestamps in database
+
+---
 
 ## 🛠️ Tech Stack
 
 ### Backend
 - **FastAPI** - Modern Python web framework
-- **SQLAlchemy** + **SQLite** - Database and ORM  
+- **SQLAlchemy + SQLite** - Database and ORM
 - **JWT (python-jose)** - Token authentication
 - **Passlib** - Password hashing (bcrypt)
 - **gpiozero** - Raspberry Pi GPIO control
@@ -54,23 +76,27 @@ Auto Mode:   Motion detected → LED turns ON automatically
 - **Single Page App** - One HTML file, no build process
 
 ### Why Vanilla JS?
-- ✅ Lightweight - 25KB vs 250MB with frameworks
-- ✅ Fast - Instant load, no build step
-- ✅ Perfect for IoT devices with limited resources
-- ✅ Modern - ES6+, async/await, template literals
+- ✅ **Lightweight** - 25KB vs 250MB with frameworks
+- ✅ **Fast** - Instant load, no build step
+- ✅ **Perfect for IoT** - Ideal for devices with limited resources
+- ✅ **Modern** - ES6+, async/await, template literals
+
+---
 
 ## 🔌 Hardware Components
 
 | Component | Model | GPIO Pin | Purpose |
 |-----------|-------|----------|---------|
-| Microcontroller | Raspberry Pi 5 | - | Main controller |
-| PIR Motion Sensor | HC-SR501 | GPIO 27 (Pin 13) | Motion detection |
-| Status LED | 5mm Blue LED | GPIO 18 (Pin 12) | Visual indicator |
-| Resistor | 330Ω | - | LED current limiting |
-| Breadboard | 400-point | - | Circuit prototyping |
-| Jumper Wires | M-M, M-F | - | Connections |
+| **Microcontroller** | Raspberry Pi 5 | - | Main controller |
+| **PIR Motion Sensor** | HC-SR501 | GPIO 27 (Pin 13) | Motion detection |
+| **Status LED** | 5mm Blue LED | GPIO 18 (Pin 12) | Visual indicator |
+| **Resistor** | 330Ω | - | LED current limiting |
+| **Breadboard** | 400-point | - | Circuit prototyping |
+| **Jumper Wires** | M-M, M-F | - | Connections |
 
 **Hardware Cost:** ~$10-15 (excluding Raspberry Pi)
+
+---
 
 ## 📋 Prerequisites
 
@@ -86,24 +112,26 @@ Auto Mode:   Motion detected → LED turns ON automatically
 - SSH enabled (for remote access)
 - Network connection (Wi-Fi or Ethernet)
 
+---
+
 ## ⚡ Quick Start
 
 ### 1. Hardware Wiring
 
-**PIR Motion Sensor (HC-SR501):**
+#### PIR Motion Sensor (HC-SR501):
 ```
 VCC (right pin)   → Pi Pin 4 (5V)
 Dout (middle pin) → Pi Pin 13 (GPIO 27)
 GND (left pin)    → Pi Pin 6 (GND) or ground rail
 ```
 
-**Status LED Circuit:**
+#### Status LED Circuit:
 ```
 Pi Pin 12 (GPIO 18) → 330Ω Resistor → LED Long Leg (+)
 LED Short Leg (-)   → Pi Pin 6 (GND) or ground rail
 ```
 
-**Using Breadboard Ground Rail (Recommended):**
+#### Using Breadboard Ground Rail (Recommended):
 ```
 Pi Pin 6 (GND) → Ground rail (-)
 PIR GND        → Ground rail (-)
@@ -137,7 +165,7 @@ nano backend/.env
 ```
 
 Add to `backend/.env`:
-```env
+```
 JWT_SECRET_KEY=<your-generated-key-from-above>
 DATABASE_URL=sqlite:///./smart_light.db
 BACKEND_HOST=0.0.0.0
@@ -189,6 +217,8 @@ INFO:     Uvicorn running on https://0.0.0.0:8000
 
 ⚠️ You'll see a security warning (self-signed certificate) - click "Advanced" → "Proceed"
 
+---
+
 ## 📡 API Endpoints
 
 ### Authentication
@@ -212,6 +242,8 @@ INFO:     Uvicorn running on https://0.0.0.0:8000
 | GET | `/motion/status` | Get sensor status and calibration |
 | POST | `/motion/settings` | Update timeout and enable/disable |
 
+---
+
 ## 📁 Project Structure
 ```
 smart-home-light/
@@ -221,7 +253,6 @@ smart-home-light/
 │   ├── auth.py              # JWT authentication
 │   ├── gpio_control.py      # LED control (GPIO 18)
 │   ├── motion_control.py    # PIR sensor logic (GPIO 27)
-│   ├── light_sensor.py      # LDR/ADC (optional, for future)
 │   ├── requirements.txt     # Python dependencies
 │   ├── start_https.sh       # Server startup script
 │   └── .env                 # Environment variables (gitignored)
@@ -232,6 +263,8 @@ smart-home-light/
 ├── install.sh               # Automated setup script
 └── README.md                # This file
 ```
+
+---
 
 ## 🧪 Testing
 
@@ -267,11 +300,14 @@ EOF
 ```
 
 ### Test 3: Full System Test
+
 1. Start server: `cd backend && ./start_https.sh`
 2. Access web interface: `https://smartlight-an.local:8000`
 3. Login with your credentials
 4. **Manual Test:** Click "Manual Toggle" → LED should light up
 5. **Motion Test:** Enable motion control → Wave at PIR → LED should light up automatically
+
+---
 
 ## 🐛 Troubleshooting
 
@@ -295,6 +331,7 @@ groups | grep gpio  # Should show 'gpio'
 ```
 
 ### Issue: SSL certificate warning
+
 This is normal for self-signed certificates. Options:
 - Click "Advanced" → "Proceed anyway" (recommended for local use)
 - Or generate CA-signed certificate for production
@@ -311,6 +348,8 @@ https://<ip-address>:8000
 sudo ufw status
 ```
 
+---
+
 ## 🔒 Security Features
 
 - ✅ **Bcrypt password hashing** - Passwords never stored in plain text
@@ -318,6 +357,8 @@ sudo ufw status
 - ✅ **HTTPS/TLS encryption** - All traffic encrypted
 - ✅ **SQL injection prevention** - Parameterized queries via SQLAlchemy
 - ✅ **Environment variables** - Secrets not committed to Git
+
+---
 
 ## 🎓 Project Context
 
@@ -334,27 +375,58 @@ sudo ufw status
 - ✅ GPIO programming on embedded Linux
 - ✅ Dual-mode control system (manual + automatic)
 
+---
+
 ## 🚀 Future Enhancements
 
 Potential additions (not yet implemented):
-- [ ] Relay module for controlling real AC/DC lights
-- [ ] LDR sensor for daylight-aware automation
-- [ ] Multiple PIR sensors for different rooms
-- [ ] Mobile app (React Native or Flutter)
-- [ ] MQTT integration for IoT platform connectivity
-- [ ] Scheduled automation (turn on/off at specific times)
+
+- ⭕ **Relay module** for controlling real AC/DC lights
+- ⭕ **LDR sensor** for daylight-aware automation
+- ⭕ **Multiple PIR sensors** for different rooms
+- ⭕ **Mobile app** (React Native or Flutter)
+- ⭕ **MQTT integration** for IoT platform connectivity
+- ⭕ **Scheduled automation** (turn on/off at specific times)
+- ⭕ **Email/SMS notifications** for motion alerts
+- ⭕ **Data analytics dashboard** for usage patterns
+
+---
+
+## 🤝 Contributing
+
+This is a course project, but feel free to fork and extend it! Some ideas:
+- Add support for multiple rooms
+- Implement MQTT for IoT platform integration
+- Add scheduled automation
+- Build a mobile app
+- Integrate with voice assistants (Alexa, Google Home)
+
+---
 
 ## 📄 License
 
-MIT License - feel free to use for learning and projects!
+MIT License - Free to use for learning and educational purposes!
+
+---
+
+## 🙏 Acknowledgments
+
+- Built for Embedded Systems Course (Fall 2024)
+- Raspberry Pi Foundation for excellent documentation
+- FastAPI and Python community for amazing tools
+- gpiozero library maintainers
+
+---
 
 ## 📧 Contact
 
 - **GitHub:** [github.com/aqn96/smart-home-light](https://github.com/aqn96/smart-home-light)
-- **Issues:** [Report bugs or request features](https://github.com/aqn96/smart-home-light/issues)
+- **Issues:** Report bugs or request features via GitHub Issues
 
 ---
 
 ⭐ **Star this repo if it helped you learn IoT and embedded systems!**
+
+---
 
 **Built with 💙 on Raspberry Pi 5**
