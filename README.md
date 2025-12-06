@@ -1,6 +1,6 @@
-# 🏠 Smart Home IoT Light Control System
+# 🏠 Smart Home IoT Security System
 
-A dual-mode IoT light control system with motion detection, built on Raspberry Pi 5 using FastAPI + Vanilla JavaScript. Control lights manually through a web interface OR automatically via motion sensor - both modes work together seamlessly.
+A dual-mode IoT security system with motion detection, live camera streaming, and real-time alerts, built on Raspberry Pi 5 using FastAPI + Vanilla JavaScript. Control lights manually through a web interface OR automatically via motion sensor - with instant intruder notifications and live video feed.
 
 ![Python](https://img.shields.io/badge/Python-3.11+-blue.svg) ![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg) ![Vanilla JS](https://img.shields.io/badge/JavaScript-Vanilla-yellow.svg) ![Raspberry Pi 5](https://img.shields.io/badge/Raspberry%20Pi-5-red.svg) ![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)
 
@@ -8,9 +8,9 @@ A dual-mode IoT light control system with motion detection, built on Raspberry P
 
 ## ✅ Project Status
 
-**Current Version:** v1.0 - Fully Functional  
+**Current Version:** v2.0 - Security Camera Update  
 **Last Updated:** November 2024  
-**Status:** ✅ Complete - All course requirements met
+**Status:** ✅ Complete - All features functional
 
 ### Implemented Features:
 - ✅ Remote light control via web interface
@@ -18,6 +18,10 @@ A dual-mode IoT light control system with motion detection, built on Raspberry P
 - ✅ JWT authentication with secure login
 - ✅ Configurable auto-off timer (5s, 10s, 30s, 60s)
 - ✅ PIR motion sensor automation
+- ✅ **🆕 USB Camera live streaming (MJPEG)**
+- ✅ **🆕 Real-time WebSocket intruder alerts**
+- ✅ **🆕 "Intruder Detected" popup with audio alert**
+- ✅ **🆕 Camera snapshot download**
 - ✅ Action history logging
 - ✅ HTTPS encrypted communication
 - ✅ Responsive mobile-friendly UI
@@ -31,7 +35,10 @@ A dual-mode IoT light control system with motion detection, built on Raspberry P
 |---------|-------------|
 | 🎮 **Dual Control Mode** | Manual web control AND automatic motion detection work simultaneously |
 | 🎯 **Motion Detection** | PIR sensor automatically triggers LED when movement detected |
-| 💡 **Status LED** | Visual indicator controlled by web interface and motion sensor |
+| 🚨 **Intruder Alerts** | Real-time WebSocket notifications with popup and sound |
+| 📹 **Live Camera** | MJPEG streaming from USB camera when motion detected |
+| 📷 **Snapshots** | Download camera snapshots on demand |
+| 🔴 **Status LED** | Red LED visual indicator for alerts |
 | 🔐 **Secure Login** | JWT authentication with password hashing |
 | ⏱️ **Timer Function** | Auto-off after configurable timeout (5s, 10s, 30s, 60s) |
 | 📜 **Action History** | Logs all manual and automatic actions with timestamps |
@@ -42,19 +49,34 @@ A dual-mode IoT light control system with motion detection, built on Raspberry P
 
 ## 🔬 How It Works
 
+### Security Alert Flow
+```
+PIR Detects Motion
+       ↓
+LED turns ON (red alert light)
+       ↓
+WebSocket broadcasts to all connected clients
+       ↓
+Browser shows "🚨 INTRUDER ALERT" popup + sound
+       ↓
+User clicks "View Camera"
+       ↓
+Live MJPEG stream from USB camera
+```
+
 ### Manual Control
 User clicks toggle button on web interface → LED changes state instantly
 
 ### Automatic Motion Detection
-- PIR motion sensor detects movement → LED turns ON automatically
+- PIR motion sensor detects movement → LED turns ON + Alert sent
 - No motion detected for timeout period → LED turns OFF automatically
 - Configurable auto-off timeout (5-60 seconds)
 - Both modes work independently and simultaneously
 
 ### Smart Logic
-- Motion sensor activates LED when movement detected
+- Motion sensor activates LED and triggers camera alert
 - Manual control always works regardless of motion sensor state
-- Web interface shows real-time status from both control modes
+- Web interface shows real-time status via WebSocket
 - All actions (manual and automatic) logged with timestamps in database
 
 ---
@@ -63,6 +85,8 @@ User clicks toggle button on web interface → LED changes state instantly
 
 ### Backend
 - **FastAPI** - Modern Python web framework
+- **WebSockets** - Real-time bidirectional communication
+- **OpenCV** - USB camera capture and MJPEG streaming
 - **SQLAlchemy + SQLite** - Database and ORM
 - **JWT (python-jose)** - Token authentication
 - **Passlib** - Password hashing (bcrypt)
@@ -70,16 +94,17 @@ User clicks toggle button on web interface → LED changes state instantly
 - **rpi-lgpio** - Raspberry Pi 5 GPIO support
 
 ### Frontend
-- **Vanilla JavaScript (ES6+)** - No frameworks, ~25KB
-- **CSS3** - Responsive styling with gradient backgrounds
-- **Fetch API** - Async backend communication
+- **Vanilla JavaScript (ES6+)** - No frameworks, ~30KB
+- **WebSocket API** - Real-time alert notifications
+- **CSS3** - Responsive styling with animations
+- **Web Audio API** - Alert sounds
 - **Single Page App** - One HTML file, no build process
 
 ### Why Vanilla JS?
-- ✅ **Lightweight** - 25KB vs 250MB with frameworks
+- ✅ **Lightweight** - 30KB vs 250MB with frameworks
 - ✅ **Fast** - Instant load, no build step
 - ✅ **Perfect for IoT** - Ideal for devices with limited resources
-- ✅ **Modern** - ES6+, async/await, template literals
+- ✅ **Modern** - ES6+, async/await, WebSocket, template literals
 
 ---
 
@@ -89,12 +114,13 @@ User clicks toggle button on web interface → LED changes state instantly
 |-----------|-------|----------|---------|
 | **Microcontroller** | Raspberry Pi 5 | - | Main controller |
 | **PIR Motion Sensor** | HC-SR501 | GPIO 27 (Pin 13) | Motion detection |
-| **Status LED** | 5mm Blue LED | GPIO 18 (Pin 12) | Visual indicator |
+| **Alert LED** | 5mm Red LED | GPIO 18 (Pin 12) | Visual alert indicator |
+| **USB Camera** | Arducam 8MP | USB Port | Live video streaming |
 | **Resistor** | 330Ω | - | LED current limiting |
 | **Breadboard** | 400-point | - | Circuit prototyping |
 | **Jumper Wires** | M-M, M-F | - | Connections |
 
-**Hardware Cost:** ~$10-15 (excluding Raspberry Pi)
+**Hardware Cost:** ~$25-35 (excluding Raspberry Pi)
 
 ---
 
@@ -103,6 +129,7 @@ User clicks toggle button on web interface → LED changes state instantly
 ### Hardware
 - Raspberry Pi 5 (or Pi 4)
 - microSD card (16GB+) with Raspberry Pi OS (64-bit)
+- USB Camera (tested with Arducam 8MP)
 - Components listed above
 - USB-C power supply (5V/3A minimum)
 
@@ -125,10 +152,15 @@ Dout (middle pin) → Pi Pin 13 (GPIO 27)
 GND (left pin)    → Pi Pin 6 (GND) or ground rail
 ```
 
-#### Status LED Circuit:
+#### Alert LED Circuit:
 ```
-Pi Pin 12 (GPIO 18) → 330Ω Resistor → LED Long Leg (+)
-LED Short Leg (-)   → Pi Pin 6 (GND) or ground rail
+Pi Pin 12 (GPIO 18) → 330Ω Resistor → Red LED Long Leg (+)
+Red LED Short Leg (-) → Pi Pin 6 (GND) or ground rail
+```
+
+#### USB Camera:
+```
+Arducam USB → Any USB port on Raspberry Pi
 ```
 
 #### Using Breadboard Ground Rail (Recommended):
@@ -147,13 +179,12 @@ cd smart-home-light
 # Run installation script
 chmod +x install.sh
 ./install.sh
-```
 
-**Note:** The install script will:
-- Create Python virtual environment
-- Install system dependencies (including lgpio for Pi 5)
-- Install Python packages
-- Set up project structure
+# Install additional dependencies for camera
+cd backend
+source venv/bin/activate
+pip install opencv-python-headless==4.9.0.80 numpy==1.26.4
+```
 
 ### 3. Configure Environment
 ```bash
@@ -190,7 +221,27 @@ openssl req -x509 -newkey rsa:4096 -nodes \
 cd ..
 ```
 
-### 6. Start Server
+### 6. Verify Camera
+```bash
+# Check if camera is detected
+ls /dev/video*
+
+# Identify your USB camera
+v4l2-ctl --list-devices
+
+# Test camera capture
+cd backend
+source venv/bin/activate
+python3 -c "
+import cv2
+cap = cv2.VideoCapture(0)
+ret, frame = cap.read()
+print('✅ Camera works!' if ret else '❌ Camera failed')
+cap.release()
+"
+```
+
+### 7. Start Server
 ```bash
 cd backend
 ./start_https.sh
@@ -199,8 +250,10 @@ cd backend
 **Expected output:**
 ```
 🚀 Server started successfully!
-✅ LED initialized on GPIO 18 (Pin 12)
-✅ PIR Motion Sensor initialized on GPIO 27 (Pin 13)
+💡 Manual toggle control: ACTIVE
+🎯 Motion sensor control: ACTIVE
+📹 Camera streaming: ACTIVE
+🔔 WebSocket alerts: ACTIVE
 ⏳ PIR calibrating for 60 seconds...
    60 seconds remaining...
    ...
@@ -209,7 +262,7 @@ cd backend
 INFO:     Uvicorn running on https://0.0.0.0:8000
 ```
 
-### 7. Access Application
+### 8. Access Application
 
 - **Web Interface:** `https://smartlight-an.local:8000`
 - **API Docs:** `https://smartlight-an.local:8000/docs`
@@ -241,6 +294,20 @@ INFO:     Uvicorn running on https://0.0.0.0:8000
 |--------|----------|-------------|
 | GET | `/motion/status` | Get sensor status and calibration |
 | POST | `/motion/settings` | Update timeout and enable/disable |
+| POST | `/motion/simulate` | Simulate motion (for testing) |
+
+### Camera
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/camera/status` | Get camera availability |
+| GET | `/camera/stream?token=JWT` | MJPEG live stream |
+| GET | `/camera/snapshot` | Capture single frame |
+| POST | `/camera/restart` | Restart camera connection |
+
+### WebSocket
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| WS | `/ws?token=JWT` | Real-time motion alerts |
 
 ---
 
@@ -253,11 +320,13 @@ smart-home-light/
 │   ├── auth.py              # JWT authentication
 │   ├── gpio_control.py      # LED control (GPIO 18)
 │   ├── motion_control.py    # PIR sensor logic (GPIO 27)
+│   ├── camera_control.py    # USB camera streaming
+│   ├── websocket_manager.py # Real-time alert broadcasting
 │   ├── requirements.txt     # Python dependencies
 │   ├── start_https.sh       # Server startup script
 │   └── .env                 # Environment variables (gitignored)
 ├── frontend/
-│   └── index.html           # Web interface (~25KB)
+│   └── index.html           # Web interface (~30KB)
 ├── .gitignore               # Git ignore rules
 ├── .env.example             # Environment template
 ├── install.sh               # Automated setup script
@@ -299,13 +368,32 @@ pir.close()
 EOF
 ```
 
-### Test 3: Full System Test
+### Test 3: Camera Test
+```bash
+python3 << 'EOF'
+import cv2
+cap = cv2.VideoCapture(0)
+ret, frame = cap.read()
+if ret:
+    print(f"✅ Camera works! Resolution: {frame.shape[1]}x{frame.shape[0]}")
+    cv2.imwrite("test_snapshot.jpg", frame)
+    print("📷 Snapshot saved as test_snapshot.jpg")
+else:
+    print("❌ Camera failed")
+cap.release()
+EOF
+```
+
+### Test 4: Full System Test
 
 1. Start server: `cd backend && ./start_https.sh`
 2. Access web interface: `https://smartlight-an.local:8000`
 3. Login with your credentials
-4. **Manual Test:** Click "Manual Toggle" → LED should light up
-5. **Motion Test:** Enable motion control → Wave at PIR → LED should light up automatically
+4. **Check WebSocket:** Green dot next to username = connected
+5. **Simulate Alert:** Click "Simulate Motion Alert" button
+6. **Verify Popup:** "🚨 INTRUDER ALERT" should appear with sound
+7. **View Camera:** Click "View Camera" to see live feed
+8. **Real Motion Test:** Wave at PIR sensor after calibration
 
 ---
 
@@ -319,6 +407,26 @@ sudo apt install -y python3-lgpio liblgpio-dev
 # Add user to GPIO group
 sudo usermod -a -G gpio $USER
 sudo reboot
+```
+
+### Issue: Camera not detected
+```bash
+# List video devices
+ls /dev/video*
+
+# Identify camera
+v4l2-ctl --list-devices
+
+# If camera index is not 0, update camera_control.py:
+# Change: camera_controller = CameraController(camera_index=0)
+# To:     camera_controller = CameraController(camera_index=1)
+```
+
+### Issue: WebSocket not connecting
+```bash
+# Check browser console for errors (F12 → Console)
+# Ensure you're using wss:// (not ws://) for HTTPS
+# Verify token is valid (try logging out and back in)
 ```
 
 ### Issue: Motion sensor not working
@@ -355,6 +463,8 @@ sudo ufw status
 - ✅ **Bcrypt password hashing** - Passwords never stored in plain text
 - ✅ **JWT tokens** - 1-hour expiration with secure signing
 - ✅ **HTTPS/TLS encryption** - All traffic encrypted
+- ✅ **WebSocket authentication** - Token required for real-time alerts
+- ✅ **Camera stream authentication** - JWT token required
 - ✅ **SQL injection prevention** - Parameterized queries via SQLAlchemy
 - ✅ **Environment variables** - Secrets not committed to Git
 
@@ -367,9 +477,10 @@ sudo ufw status
 **Platform:** Raspberry Pi 5
 
 ### Learning Objectives Demonstrated:
-- ✅ IoT hardware integration (PIR sensor, LED control)
+- ✅ IoT hardware integration (PIR sensor, LED, USB camera)
 - ✅ RESTful API design with FastAPI
-- ✅ Real-time sensor data processing
+- ✅ Real-time communication with WebSockets
+- ✅ Video streaming (MJPEG over HTTP)
 - ✅ Secure authentication and authorization
 - ✅ Full-stack web development
 - ✅ GPIO programming on embedded Linux
@@ -388,6 +499,8 @@ Potential additions (not yet implemented):
 - ⭕ **MQTT integration** for IoT platform connectivity
 - ⭕ **Scheduled automation** (turn on/off at specific times)
 - ⭕ **Email/SMS notifications** for motion alerts
+- ⭕ **Motion recording** (save video clips on detection)
+- ⭕ **Cloud storage** for snapshots and recordings
 - ⭕ **Data analytics dashboard** for usage patterns
 
 ---
@@ -395,11 +508,12 @@ Potential additions (not yet implemented):
 ## 🤝 Contributing
 
 This is a course project, but feel free to fork and extend it! Some ideas:
-- Add support for multiple rooms
+- Add support for multiple rooms/cameras
 - Implement MQTT for IoT platform integration
 - Add scheduled automation
 - Build a mobile app
 - Integrate with voice assistants (Alexa, Google Home)
+- Add facial recognition
 
 ---
 
@@ -414,6 +528,7 @@ MIT License - Free to use for learning and educational purposes!
 - Built for Embedded Systems Course (Fall 2024)
 - Raspberry Pi Foundation for excellent documentation
 - FastAPI and Python community for amazing tools
+- OpenCV community for computer vision libraries
 - gpiozero library maintainers
 
 ---
@@ -429,4 +544,4 @@ MIT License - Free to use for learning and educational purposes!
 
 ---
 
-**Built with 💙 on Raspberry Pi 5**
+**Built with ❤️ on Raspberry Pi 5**

@@ -1,29 +1,39 @@
+"""
+PIR Motion Sensor Controller with Alert Callback
+GPIO 27 (Pin 13) - HC-SR501 PIR Sensor
+"""
+
 from gpiozero import MotionSensor
 from gpiozero.exc import BadPinFactory
 from gpio_control import light_controller
-from light_sensor import light_sensor
 import threading
 import time
+import asyncio
 from datetime import datetime
+from typing import Callable, Optional
+
 
 class MotionSensorController:
     def __init__(self, pir_pin=27, timeout=10, calibration_time=60):
         """Initialize PIR motion sensor on GPIO 27 (Pin 13)"""
         self.pir_pin = pir_pin
-        self.timeout = timeout  # Seconds to keep light on after motion stops
-        self.calibration_time = calibration_time  # PIR calibration time
-        self.enabled = True  # Motion sensor can be disabled
+        self.timeout = timeout
+        self.calibration_time = calibration_time
+        self.enabled = True
         self.simulation_mode = False
-        self.is_calibrated = False  # NEW: Track calibration status
+        self.is_calibrated = False
         self.pir = None
         self.timer = None
         self.motion_active = False
+        
+        # NEW: Alert callback for WebSocket notifications
+        self._alert_callback: Optional[Callable] = None
+        self._alert_loop: Optional[asyncio.AbstractEventLoop] = None
         
         try:
             self.pir = MotionSensor(pir_pin)
             print(f"✅ PIR Motion Sensor initialized on GPIO {pir_pin} (Pin 13)")
             
-            # Start calibration in background thread
             self.calibration_thread = threading.Thread(target=self._calibrate)
             self.calibration_thread.daemon = True
             self.calibration_thread.start()
@@ -31,14 +41,36 @@ class MotionSensorController:
         except (BadPinFactory, Exception) as e:
             print(f"⚠️ PIR sensor not available, running in simulation mode: {e}")
             self.simulation_mode = True
-            self.is_calibrated = True  # Skip calibration in simulation mode
+            self.is_calibrated = True
+    
+    def set_alert_callback(self, callback: Callable, loop: asyncio.AbstractEventLoop):
+        """
+        Set callback function to be called when motion is detected
+        
+        Args:
+            callback: Async function to call on motion detection
+            loop: Asyncio event loop to run the callback in
+        """
+        self._alert_callback = callback
+        self._alert_loop = loop
+        print("✅ Motion alert callback configured")
+    
+    def _trigger_alert(self):
+        """Trigger the alert callback (thread-safe)"""
+        if self._alert_callback and self._alert_loop:
+            try:
+                asyncio.run_coroutine_threadsafe(
+                    self._alert_callback(),
+                    self._alert_loop
+                )
+            except Exception as e:
+                print(f"⚠️ Alert callback error: {e}")
     
     def _calibrate(self):
         """Calibrate PIR sensor with countdown (runs in background)"""
         print(f"⏳ PIR calibrating for {self.calibration_time} seconds...")
         print("   Please stay still!")
         
-        # Countdown every 10 seconds
         for remaining in range(self.calibration_time, 0, -10):
             print(f"   {remaining} seconds remaining...")
             time.sleep(10)
@@ -46,7 +78,6 @@ class MotionSensorController:
         self.is_calibrated = True
         print("✅ PIR sensor calibrated and ready!")
         
-        # Now start listening for motion
         self.start()
     
     def start(self):
@@ -70,16 +101,19 @@ class MotionSensorController:
         
         timestamp = datetime.now().strftime("%H:%M:%S")
         
-        # It's dark AND motion detected - turn on light
         self.motion_active = True
+        print(f"[{timestamp}] 🚨 MOTION DETECTED!")
         print(f"[{timestamp}] 💡 LED turned ON by motion sensor")
         
-        # Turn on light using existing controller
+        # Turn on LED (existing behavior)
         light_controller.turn_on()
         
         # Cancel any existing auto-off timer
         if self.timer and self.timer.is_alive():
             self.timer.cancel()
+        
+        # NEW: Trigger WebSocket alert
+        self._trigger_alert()
     
     def _on_no_motion(self):
         """Called when motion stops"""
@@ -89,13 +123,11 @@ class MotionSensorController:
         timestamp = datetime.now().strftime("%H:%M:%S")
         print(f"[{timestamp}] 🛑 No motion detected. Auto-off in {self.timeout}s...")
         
-        # Start countdown timer for auto-off
         self.timer = threading.Timer(self.timeout, self._auto_turn_off)
         self.timer.start()
     
     def _auto_turn_off(self):
         """Turn off light after timeout (if still no motion)"""
-        # Double-check: only turn off if motion is still not detected
         if self.pir and not self.pir.motion_detected:
             self.motion_active = False
             light_controller.turn_off()
@@ -109,7 +141,7 @@ class MotionSensorController:
         return {
             "enabled": self.enabled,
             "timeout": self.timeout,
-            "calibrated": self.is_calibrated,  # NEW: Include calibration status
+            "calibrated": self.is_calibrated,
             "motion_detected": self.pir.motion_detected if (self.pir and self.is_calibrated) else False,
             "motion_active": self.motion_active,
             "simulation_mode": self.simulation_mode
@@ -134,6 +166,16 @@ class MotionSensorController:
         
         return self.get_status()
     
+    # NEW: Simulate motion for testing (useful when no hardware)
+    def simulate_motion(self):
+        """Simulate a motion detection event (for testing)"""
+        if not self.enabled:
+            return {"error": "Motion sensor is disabled"}
+        
+        print("🧪 Simulating motion detection...")
+        self._on_motion_detected()
+        return {"message": "Motion simulated", "alert_sent": True}
+    
     def cleanup(self):
         """Clean up resources"""
         if self.timer and self.timer.is_alive():
@@ -141,6 +183,7 @@ class MotionSensorController:
         if self.pir:
             self.pir.close()
         print("🧹 Motion sensor cleaned up")
+
 
 # Global motion sensor controller instance - GPIO 27 (Pin 13)
 motion_controller = MotionSensorController(pir_pin=27, timeout=10, calibration_time=60)

@@ -16,6 +16,8 @@ h11==0.16.0
 httptools==0.7.1
 idna==3.11
 lgpio==0.2.2.0
+numpy==1.26.4
+opencv-python-headless==4.9.0.80
 passlib==1.7.4
 pyasn1==0.6.1
 pycparser==2.23

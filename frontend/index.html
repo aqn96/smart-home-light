@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Home Light Control</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -20,7 +15,6 @@
             align-items: center;
             padding: 20px;
         }
-
         .container {
             background: white;
             border-radius: 20px;
@@ -29,47 +23,19 @@
             width: 100%;
             overflow: hidden;
         }
-
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
             text-align: center;
         }
-
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-
-        .content {
-            padding: 30px;
-        }
-
-        .auth-section, .control-section {
-            display: none;
-        }
-
-        .auth-section.active, .control-section.active {
-            display: block;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-        }
-
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 14px; }
+        .content { padding: 30px; }
+        .auth-section, .control-section { display: none; }
+        .auth-section.active, .control-section.active { display: block; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; }
         input {
             width: 100%;
             padding: 12px;
@@ -78,12 +44,7 @@
             font-size: 14px;
             transition: border-color 0.3s;
         }
-
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
+        input:focus { outline: none; border-color: #667eea; }
         button {
             width: 100%;
             padding: 14px;
@@ -96,42 +57,13 @@
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .secondary-btn {
-            background: transparent;
-            color: #667eea;
-            border: 2px solid #667eea;
-            margin-top: 10px;
-        }
-
-        .secondary-btn:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .light-control {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .secondary-btn { background: transparent; color: #667eea; border: 2px solid #667eea; margin-top: 10px; }
+        .secondary-btn:hover { background: #667eea; color: white; }
+        .light-control { text-align: center; margin-bottom: 30px; }
         .light-bulb {
-            width: 120px;
-            height: 120px;
+            width: 120px; height: 120px;
             margin: 20px auto;
             border-radius: 50%;
             background: #e0e0e0;
@@ -142,12 +74,10 @@
             transition: all 0.3s;
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
-
         .light-bulb.on {
             background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
             box-shadow: 0 5px 40px rgba(255, 215, 0, 0.6);
         }
-
         .status-badge {
             display: inline-block;
             padding: 8px 16px;
@@ -156,18 +86,8 @@
             font-weight: 600;
             margin-top: 10px;
         }
-
-        .status-badge.on {
-            background: #4caf50;
-            color: white;
-        }
-
-        .status-badge.off {
-            background: #f44336;
-            color: white;
-        }
-
-        /* NEW: Motion sensor styles */
+        .status-badge.on { background: #4caf50; color: white; }
+        .status-badge.off { background: #f44336; color: white; }
         .motion-section {
             background: #f0f4ff;
             padding: 20px;
@@ -175,266 +95,116 @@
             margin-bottom: 20px;
             border: 2px solid #667eea;
         }
-
-        .motion-section h3 {
-            margin-bottom: 15px;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
+        .motion-section h3 { margin-bottom: 15px; color: #333; display: flex; align-items: center; gap: 10px; }
         .motion-indicator {
-            width: 12px;
-            height: 12px;
+            width: 12px; height: 12px;
             border-radius: 50%;
             background: #ccc;
             display: inline-block;
             transition: all 0.3s;
         }
-
         .motion-indicator.active {
             background: #4caf50;
             box-shadow: 0 0 10px #4caf50;
             animation: pulse 1.5s infinite;
         }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .toggle-switch {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-
-        .switch {
-            position: relative;
-            width: 60px;
-            height: 30px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .toggle-switch { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        .switch { position: relative; width: 60px; height: 30px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
             background-color: #ccc;
             transition: .4s;
             border-radius: 30px;
         }
-
         .slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 4px;
-            bottom: 4px;
+            position: absolute; content: "";
+            height: 22px; width: 22px;
+            left: 4px; bottom: 4px;
             background-color: white;
             transition: .4s;
             border-radius: 50%;
         }
-
-        input:checked + .slider {
-            background-color: #667eea;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(30px);
-        }
-
-        .timeout-control {
-            margin-top: 15px;
-        }
-
-        .timeout-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-top: 10px;
-        }
-
+        input:checked + .slider { background-color: #667eea; }
+        input:checked + .slider:before { transform: translateX(30px); }
+        .timeout-control { margin-top: 15px; }
+        .timeout-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
         .timeout-btn {
-            padding: 8px;
-            font-size: 13px;
-            border-radius: 6px;
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
+            padding: 8px; font-size: 13px; border-radius: 6px;
+            background: white; color: #667eea; border: 2px solid #667eea;
         }
-
-        .timeout-btn.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .timer-section {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 20px;
-        }
-
-        .timer-section h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .timer-input {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .timer-input input {
-            flex: 1;
-        }
-
-        .timer-input button {
-            flex: 0 0 80px;
-        }
-
-        .history-section {
-            margin-top: 30px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .history-section h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
+        .timeout-btn.active { background: #667eea; color: white; }
+        .timer-section { background: #f5f5f5; padding: 20px; border-radius: 12px; margin-top: 20px; }
+        .timer-section h3 { margin-bottom: 15px; color: #333; }
+        .timer-input { display: flex; gap: 10px; margin-bottom: 10px; }
+        .timer-input input { flex: 1; }
+        .timer-input button { flex: 0 0 80px; }
+        .history-section { margin-top: 30px; max-height: 300px; overflow-y: auto; }
+        .history-section h3 { margin-bottom: 15px; color: #333; }
         .history-item {
-            background: #f9f9f9;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: #f9f9f9; padding: 12px; border-radius: 8px; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        .history-action {
-            font-weight: 600;
-            color: #667eea;
-        }
-
-        .history-time {
-            font-size: 12px;
-            color: #888;
-        }
-
+        .history-action { font-weight: 600; color: #667eea; }
+        .history-time { font-size: 12px; color: #888; }
         .user-info {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        .user-name {
-            font-weight: 600;
-            color: #333;
+        .user-name { font-weight: 600; color: #333; }
+        .logout-btn { padding: 8px 16px; font-size: 14px; width: auto; }
+        .ws-status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #666; }
+        .ws-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+        .ws-dot.connected { background: #4caf50; }
+        .ws-dot.disconnected { background: #f44336; }
+        .alert { padding: 12px; border-radius: 8px; margin-bottom: 20px; animation: slideIn 0.3s ease-out; }
+        .alert.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .tab-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 10px; background: transparent; color: #667eea; border: 2px solid #e0e0e0; margin: 0; }
+        .tab-btn.active { background: #667eea; color: white; border-color: #667eea; }
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center; align-items: center;
         }
-
-        .logout-btn {
-            padding: 8px 16px;
-            font-size: 14px;
-            width: auto;
-        }
-
-        .alert {
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        .alert.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .alert.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .tab-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 10px;
-            background: transparent;
-            color: #667eea;
-            border: 2px solid #e0e0e0;
-            margin: 0;
-        }
-
-        .tab-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 20px; max-width: 450px; width: 90%; overflow: hidden; animation: slideUp 0.3s; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-header { background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); color: white; padding: 25px; text-align: center; }
+        .modal-header h2 { font-size: 24px; margin-bottom: 10px; }
+        .modal-body { padding: 25px; text-align: center; }
+        .modal-icon { font-size: 80px; margin-bottom: 20px; animation: shake 0.5s infinite; }
+        @keyframes shake { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+        .modal-buttons { display: flex; gap: 15px; margin-top: 20px; }
+        .modal-buttons button { flex: 1; }
+        .btn-danger { background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); }
+        .btn-secondary { background: #9e9e9e; }
+        .camera-section { display: none; background: #1a1a1a; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+        .camera-section.active { display: block; }
+        .camera-header { background: #2d2d2d; padding: 15px; display: flex; justify-content: space-between; align-items: center; color: white; }
+        .camera-header h3 { display: flex; align-items: center; gap: 10px; }
+        .camera-live-badge { background: #f44336; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .camera-feed { width: 100%; height: auto; min-height: 300px; background: #000; display: block; }
+        .camera-controls { background: #2d2d2d; padding: 15px; display: flex; gap: 10px; }
+        .camera-controls button { flex: 1; padding: 10px; font-size: 14px; }
+        .btn-close-camera { background: #616161; }
+        .test-section { margin-top: 20px; padding: 15px; background: #fff3e0; border-radius: 12px; border: 2px dashed #ff9800; }
+        .test-section h4 { color: #e65100; margin-bottom: 10px; }
+        .test-section button { background: #ff9800; }
         @media (max-width: 600px) {
-            .container {
-                margin: 0;
-            }
-            
-            .header h1 {
-                font-size: 24px;
-            }
-
-            .timeout-buttons {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .container { margin: 0; }
+            .header h1 { font-size: 24px; }
+            .timeout-buttons { grid-template-columns: repeat(2, 1fr); }
+            .modal-buttons { flex-direction: column; }
         }
     </style>
 </head>
@@ -442,21 +212,16 @@
     <div class="container">
         <div class="header">
             <h1>🏠 Smart Home</h1>
-            <p>IoT Light Control System with Motion Sensor</p>
+            <p>IoT Light Control with Motion Sensor & Camera</p>
         </div>
-
         <div class="content">
-            <!-- Authentication Section -->
             <div class="auth-section active" id="authSection">
                 <div class="tab-buttons">
                     <button class="tab-btn active" onclick="showLoginForm()">Login</button>
                     <button class="tab-btn" onclick="showRegisterForm()">Register</button>
                 </div>
-
                 <div id="alertContainer"></div>
-
-                <!-- Login Form -->
-                <form id="loginForm" style="display: block;">
+                <form id="loginForm">
                     <div class="form-group">
                         <label for="loginUsername">Username</label>
                         <input type="text" id="loginUsername" required>
@@ -467,8 +232,6 @@
                     </div>
                     <button type="submit">Login</button>
                 </form>
-
-                <!-- Register Form -->
                 <form id="registerForm" style="display: none;">
                     <div class="form-group">
                         <label for="registerUsername">Username</label>
@@ -485,25 +248,30 @@
                     <button type="submit">Register</button>
                 </form>
             </div>
-
-            <!-- Control Section -->
             <div class="control-section" id="controlSection">
                 <div class="user-info">
                     <div>
                         <div class="user-name" id="userName">Welcome!</div>
+                        <div class="ws-status">
+                            <span class="ws-dot" id="wsStatusDot"></span>
+                            <span id="wsStatusText">Connecting...</span>
+                        </div>
                     </div>
                     <button class="logout-btn" onclick="logout()">Logout</button>
                 </div>
-
                 <div id="controlAlertContainer"></div>
-
-                <!-- NEW: Motion Sensor Section -->
+                <div class="camera-section" id="cameraSection">
+                    <div class="camera-header">
+                        <h3>📹 Live Camera <span class="camera-live-badge">LIVE</span></h3>
+                    </div>
+                    <img class="camera-feed" id="cameraFeed" alt="Camera Feed">
+                    <div class="camera-controls">
+                        <button class="btn-close-camera" onclick="closeCamera()">Close Camera</button>
+                        <button onclick="takeSnapshot()">📷 Snapshot</button>
+                    </div>
+                </div>
                 <div class="motion-section">
-                    <h3>
-                        🎯 Motion Sensor
-                        <span class="motion-indicator" id="motionIndicator"></span>
-                    </h3>
-                    
+                    <h3>🎯 Motion Sensor <span class="motion-indicator" id="motionIndicator"></span></h3>
                     <div class="toggle-switch">
                         <span>Enable Motion Control</span>
                         <label class="switch">
@@ -511,7 +279,6 @@
                             <span class="slider"></span>
                         </label>
                     </div>
-
                     <div class="timeout-control">
                         <label>Auto-off Timeout</label>
                         <div class="timeout-buttons">
@@ -521,106 +288,99 @@
                             <button class="timeout-btn" onclick="setMotionTimeout(60)">60s</button>
                         </div>
                     </div>
-
                     <p style="font-size: 12px; color: #666; margin-top: 15px;">
-                        💡 Motion detected → Light ON automatically<br>
-                        ⏱️ No motion → Light OFF after timeout
+                        💡 Motion detected → Light ON + Alert notification<br>
+                        📹 View live camera feed when intruder detected
                     </p>
                 </div>
-
-                <!-- Light Control -->
                 <div class="light-control">
                     <div class="light-bulb" id="lightBulb">💡</div>
                     <div class="status-badge off" id="statusBadge">OFF</div>
-                    <button onclick="toggleLight()" style="margin-top: 20px;" id="toggleBtn">
-                        Manual Toggle
-                    </button>
+                    <button onclick="toggleLight()" style="margin-top: 20px;" id="toggleBtn">Manual Toggle</button>
                 </div>
-
-                <!-- Timer Section -->
                 <div class="timer-section">
                     <h3>⏱️ Set Timer</h3>
                     <div class="timer-input">
                         <input type="number" id="timerSeconds" placeholder="Seconds" min="1" max="86400" value="30">
                         <button onclick="setTimer()">Set</button>
                     </div>
-                    <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                        Timer will turn off the light after specified seconds (max 24 hours)
-                    </p>
                 </div>
-
-                <!-- History Section -->
+                <div class="test-section">
+                    <h4>🧪 Testing Tools</h4>
+                    <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Simulate motion detection without hardware</p>
+                    <button onclick="simulateMotion()">Simulate Motion Alert</button>
+                </div>
                 <div class="history-section">
                     <h3>📜 Recent Actions</h3>
-                    <div id="historyContainer">
-                        <p style="text-align: center; color: #888;">Loading history...</p>
-                    </div>
+                    <div id="historyContainer"><p style="text-align: center; color: #888;">Loading...</p></div>
                 </div>
             </div>
         </div>
     </div>
-
+    <div class="modal-overlay" id="alertModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>🚨 INTRUDER ALERT</h2>
+                <p id="alertTimestamp">Motion detected</p>
+            </div>
+            <div class="modal-body">
+                <div class="modal-icon">🚨</div>
+                <p>Motion sensor has detected movement!</p>
+                <p style="color: #666; font-size: 14px; margin-top: 10px;">Would you like to view the live camera feed?</p>
+                <div class="modal-buttons">
+                    <button class="btn-danger" onclick="viewCamera()">📹 View Camera</button>
+                    <button class="btn-secondary" onclick="dismissAlert()">Dismiss</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
-        // API Configuration
-        const API_BASE_URL = window.location.origin;
+        const API_BASE = window.location.origin;
         let authToken = localStorage.getItem('authToken');
-        let statusInterval = null;
-        let historyInterval = null;
-        let motionInterval = null;
+        let ws = null;
+        let statusInterval, motionInterval, historyInterval;
 
-        // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
-            if (authToken) {
-                showControlSection();
-            }
-
+            if (authToken) showControlSection();
             document.getElementById('loginForm').addEventListener('submit', handleLogin);
             document.getElementById('registerForm').addEventListener('submit', handleRegister);
         });
 
-        // Auth Functions
         function showLoginForm() {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('registerForm').style.display = 'none';
-            clearAlerts();
         }
 
         function showRegisterForm() {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('registerForm').style.display = 'block';
-            clearAlerts();
         }
 
         async function handleLogin(e) {
             e.preventDefault();
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
-
             try {
-                showAlert('Logging in...', 'success');
-                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                const res = await fetch(`${API_BASE}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
-
-                const data = await response.json();
-
-                if (response.ok) {
+                const data = await res.json();
+                if (res.ok) {
                     authToken = data.access_token;
                     localStorage.setItem('authToken', authToken);
                     localStorage.setItem('username', username);
-                    showAlert('Login successful!', 'success');
-                    setTimeout(() => showControlSection(), 500);
+                    showControlSection();
                 } else {
                     showAlert(data.detail || 'Login failed', 'error');
                 }
-            } catch (error) {
-                showAlert('Network error. Please try again.', 'error');
+            } catch (err) {
+                showAlert('Network error', 'error');
             }
         }
 
@@ -629,292 +389,251 @@
             const username = document.getElementById('registerUsername').value;
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
-
             try {
-                showAlert('Creating account...', 'success');
-                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                const res = await fetch(`${API_BASE}/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, email, password })
                 });
-
-                const data = await response.json();
-
-                if (response.ok) {
+                const data = await res.json();
+                if (res.ok) {
                     authToken = data.access_token;
                     localStorage.setItem('authToken', authToken);
                     localStorage.setItem('username', username);
-                    showAlert('Registration successful!', 'success');
-                    setTimeout(() => showControlSection(), 500);
+                    showControlSection();
                 } else {
                     showAlert(data.detail || 'Registration failed', 'error');
                 }
-            } catch (error) {
-                showAlert('Network error. Please try again.', 'error');
+            } catch (err) {
+                showAlert('Network error', 'error');
             }
         }
 
         async function logout() {
-            try {
-                await fetch(`${API_BASE_URL}/auth/logout`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-            } catch (error) {
-                console.error('Logout error:', error);
-            }
-
+            try { await fetch(`${API_BASE}/auth/logout`, { method: 'POST', headers: { 'Authorization': `Bearer ${authToken}` }}); } catch {}
             authToken = null;
             localStorage.removeItem('authToken');
             localStorage.removeItem('username');
+            if (ws) ws.close();
             clearIntervals();
-            showAuthSection();
+            document.getElementById('controlSection').classList.remove('active');
+            document.getElementById('authSection').classList.add('active');
         }
 
-        // Control Functions
         function showControlSection() {
             document.getElementById('authSection').classList.remove('active');
             document.getElementById('controlSection').classList.add('active');
-            const username = localStorage.getItem('username');
-            document.getElementById('userName').textContent = `Welcome, ${username}!`;
-            
+            document.getElementById('userName').textContent = `Welcome, ${localStorage.getItem('username')}!`;
+            connectWebSocket();
             updateLightStatus();
-            updateMotionStatus();  // NEW
+            updateMotionStatus();
             updateHistory();
-            
-            // Poll status every 2 seconds
             statusInterval = setInterval(updateLightStatus, 2000);
-            motionInterval = setInterval(updateMotionStatus, 2000);  // NEW
+            motionInterval = setInterval(updateMotionStatus, 2000);
             historyInterval = setInterval(updateHistory, 5000);
-        }
-
-        function showAuthSection() {
-            document.getElementById('controlSection').classList.remove('active');
-            document.getElementById('authSection').classList.add('active');
-            clearAlerts('control');
         }
 
         function clearIntervals() {
             if (statusInterval) clearInterval(statusInterval);
-            if (motionInterval) clearInterval(motionInterval);  // NEW
+            if (motionInterval) clearInterval(motionInterval);
             if (historyInterval) clearInterval(historyInterval);
+        }
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws?token=${authToken}`;
+            ws = new WebSocket(wsUrl);
+            ws.onopen = () => {
+                document.getElementById('wsStatusDot').className = 'ws-dot connected';
+                document.getElementById('wsStatusText').textContent = 'Connected';
+                console.log('WebSocket connected');
+            };
+            ws.onclose = () => {
+                document.getElementById('wsStatusDot').className = 'ws-dot disconnected';
+                document.getElementById('wsStatusText').textContent = 'Disconnected';
+                setTimeout(() => { if (authToken) connectWebSocket(); }, 3000);
+            };
+            ws.onerror = (err) => console.error('WebSocket error:', err);
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log('WebSocket message:', data);
+                if (data.type === 'motion_alert') {
+                    showIntruderAlert(data);
+                } else if (data.type === 'ping') {
+                    ws.send('pong');
+                }
+            };
+        }
+
+        function showIntruderAlert(data) {
+            const time = new Date(data.timestamp).toLocaleTimeString();
+            document.getElementById('alertTimestamp').textContent = `Motion detected at ${time}`;
+            document.getElementById('alertModal').classList.add('active');
+            playAlertSound();
+            updateLightStatus();
+            updateHistory();
+        }
+
+        function playAlertSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = 800;
+                osc.type = 'square';
+                gain.gain.value = 0.3;
+                osc.start();
+                setTimeout(() => { osc.frequency.value = 600; }, 200);
+                setTimeout(() => { osc.frequency.value = 800; }, 400);
+                setTimeout(() => { osc.stop(); ctx.close(); }, 600);
+            } catch {}
+        }
+
+        function dismissAlert() {
+            document.getElementById('alertModal').classList.remove('active');
+        }
+
+        function viewCamera() {
+            dismissAlert();
+            document.getElementById('cameraSection').classList.add('active');
+            document.getElementById('cameraFeed').src = `${API_BASE}/camera/stream?token=${authToken}`;
+        }
+
+        function closeCamera() {
+            document.getElementById('cameraSection').classList.remove('active');
+            document.getElementById('cameraFeed').src = '';
+        }
+
+        async function takeSnapshot() {
+            try {
+                const res = await fetch(`${API_BASE}/camera/snapshot`, { headers: { 'Authorization': `Bearer ${authToken}` }});
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `snapshot_${Date.now()}.jpg`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showAlert('Snapshot saved!', 'success', 'control');
+                }
+            } catch { showAlert('Snapshot failed', 'error', 'control'); }
+        }
+
+        async function simulateMotion() {
+            try {
+                const res = await fetch(`${API_BASE}/motion/simulate`, { method: 'POST', headers: { 'Authorization': `Bearer ${authToken}` }});
+                if (res.ok) showAlert('Motion simulated!', 'success', 'control');
+            } catch { showAlert('Simulation failed', 'error', 'control'); }
         }
 
         async function updateLightStatus() {
             try {
-                const response = await fetch(`${API_BASE_URL}/light/status`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-
-                if (response.status === 401) {
-                    logout();
-                    return;
-                }
-
-                const data = await response.json();
+                const res = await fetch(`${API_BASE}/light/status`, { headers: { 'Authorization': `Bearer ${authToken}` }});
+                if (res.status === 401) { logout(); return; }
+                const data = await res.json();
                 updateLightUI(data.is_on);
-            } catch (error) {
-                console.error('Status update error:', error);
-            }
+            } catch {}
         }
 
-        // NEW: Motion sensor functions
         async function updateMotionStatus() {
             try {
-                const response = await fetch(`${API_BASE_URL}/motion/status`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
+                const res = await fetch(`${API_BASE}/motion/status`, { headers: { 'Authorization': `Bearer ${authToken}` }});
+                if (res.ok) {
+                    const data = await res.json();
                     document.getElementById('motionToggle').checked = data.enabled;
-                    
-                    const indicator = document.getElementById('motionIndicator');
-                    if (data.motion_detected) {
-                        indicator.classList.add('active');
-                    } else {
-                        indicator.classList.remove('active');
-                    }
+                    const ind = document.getElementById('motionIndicator');
+                    ind.classList.toggle('active', data.motion_detected);
                 }
-            } catch (error) {
-                console.error('Motion status error:', error);
-            }
+            } catch {}
         }
 
         async function toggleMotionSensor() {
             const enabled = document.getElementById('motionToggle').checked;
-            
             try {
-                const response = await fetch(`${API_BASE_URL}/motion/settings?enabled=${enabled}`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-
-                if (response.ok) {
-                    showAlert(`Motion sensor ${enabled ? 'enabled' : 'disabled'}`, 'success', 'control');
-                    updateHistory();
-                }
-            } catch (error) {
-                showAlert('Failed to update motion sensor', 'error', 'control');
-            }
+                await fetch(`${API_BASE}/motion/settings?enabled=${enabled}`, { method: 'POST', headers: { 'Authorization': `Bearer ${authToken}` }});
+                showAlert(`Motion sensor ${enabled ? 'enabled' : 'disabled'}`, 'success', 'control');
+                updateHistory();
+            } catch {}
         }
 
         async function setMotionTimeout(seconds) {
-            // Update button styles
-            document.querySelectorAll('.timeout-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
+            document.querySelectorAll('.timeout-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
-
             try {
-                const response = await fetch(`${API_BASE_URL}/motion/settings?timeout=${seconds}`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-
-                if (response.ok) {
-                    showAlert(`Timeout set to ${seconds}s`, 'success', 'control');
-                    updateHistory();
-                }
-            } catch (error) {
-                showAlert('Failed to update timeout', 'error', 'control');
-            }
+                await fetch(`${API_BASE}/motion/settings?timeout=${seconds}`, { method: 'POST', headers: { 'Authorization': `Bearer ${authToken}` }});
+                showAlert(`Timeout set to ${seconds}s`, 'success', 'control');
+            } catch {}
         }
 
         function updateLightUI(isOn) {
             const bulb = document.getElementById('lightBulb');
             const badge = document.getElementById('statusBadge');
-
-            if (isOn) {
-                bulb.classList.add('on');
-                badge.classList.remove('off');
-                badge.classList.add('on');
-                badge.textContent = 'ON';
-            } else {
-                bulb.classList.remove('on');
-                badge.classList.remove('on');
-                badge.classList.add('off');
-                badge.textContent = 'OFF';
-            }
+            bulb.classList.toggle('on', isOn);
+            badge.className = `status-badge ${isOn ? 'on' : 'off'}`;
+            badge.textContent = isOn ? 'ON' : 'OFF';
         }
 
         async function toggleLight() {
             const btn = document.getElementById('toggleBtn');
             btn.disabled = true;
             btn.innerHTML = '<span class="loading"></span>';
-
             try {
-                const response = await fetch(`${API_BASE_URL}/light/toggle`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
+                const res = await fetch(`${API_BASE}/light/toggle`, { method: 'POST', headers: { 'Authorization': `Bearer ${authToken}` }});
+                const data = await res.json();
+                if (res.ok) {
                     updateLightUI(data.is_on);
                     showAlert(`Light turned ${data.action}`, 'success', 'control');
                     updateHistory();
-                } else {
-                    showAlert('Failed to toggle light', 'error', 'control');
                 }
-            } catch (error) {
-                showAlert('Network error', 'error', 'control');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Manual Toggle';
-            }
+            } catch {}
+            btn.disabled = false;
+            btn.textContent = 'Manual Toggle';
         }
 
         async function setTimer() {
             const seconds = parseInt(document.getElementById('timerSeconds').value);
-
-            if (!seconds || seconds < 1 || seconds > 86400) {
-                showAlert('Please enter a valid time (1-86400 seconds)', 'error', 'control');
-                return;
-            }
-
+            if (!seconds || seconds < 1) { showAlert('Enter valid seconds', 'error', 'control'); return; }
             try {
-                const response = await fetch(`${API_BASE_URL}/light/timer?seconds=${seconds}`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showAlert(data.message, 'success', 'control');
-                    updateHistory();
-                } else {
-                    showAlert(data.detail || 'Failed to set timer', 'error', 'control');
-                }
-            } catch (error) {
-                showAlert('Network error', 'error', 'control');
-            }
+                const res = await fetch(`${API_BASE}/light/timer?seconds=${seconds}`, { method: 'POST', headers: { 'Authorization': `Bearer ${authToken}` }});
+                if (res.ok) { showAlert(`Timer set for ${seconds}s`, 'success', 'control'); updateHistory(); }
+            } catch {}
         }
 
         async function updateHistory() {
             try {
-                const response = await fetch(`${API_BASE_URL}/light/history?limit=10`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.history) {
-                    displayHistory(data.history);
+                const res = await fetch(`${API_BASE}/light/history?limit=10`, { headers: { 'Authorization': `Bearer ${authToken}` }});
+                const data = await res.json();
+                if (res.ok && data.history) {
+                    const container = document.getElementById('historyContainer');
+                    if (data.history.length === 0) {
+                        container.innerHTML = '<p style="text-align:center;color:#888">No actions yet</p>';
+                    } else {
+                        container.innerHTML = data.history.map(h => `
+                            <div class="history-item">
+                                <div><div class="history-action">${h.action}</div><div style="font-size:12px;color:#666">by ${h.username}</div></div>
+                                <div class="history-time">${formatTime(h.timestamp)}</div>
+                            </div>
+                        `).join('');
+                    }
                 }
-            } catch (error) {
-                console.error('History update error:', error);
-            }
+            } catch {}
         }
 
-        function displayHistory(history) {
-            const container = document.getElementById('historyContainer');
-
-            if (history.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #888;">No actions yet</p>';
-                return;
-            }
-
-            container.innerHTML = history.map(item => `
-                <div class="history-item">
-                    <div>
-                        <div class="history-action">${item.action}</div>
-                        <div style="font-size: 12px; color: #666;">by ${item.username}</div>
-                    </div>
-                    <div class="history-time">${formatTime(item.timestamp)}</div>
-                </div>
-            `).join('');
-        }
-
-        function formatTime(timestamp) {
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diff = Math.floor((now - date) / 1000);
-
+        function formatTime(ts) {
+            const diff = Math.floor((new Date() - new Date(ts)) / 1000);
             if (diff < 60) return 'Just now';
-            if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-            if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-            return date.toLocaleDateString();
+            if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+            if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+            return new Date(ts).toLocaleDateString();
         }
 
-        function showAlert(message, type, section = 'auth') {
-            const containerId = section === 'control' ? 'controlAlertContainer' : 'alertContainer';
-            const container = document.getElementById(containerId);
-            container.innerHTML = `<div class="alert ${type}">${message}</div>`;
-            
-            setTimeout(() => {
-                if (container.firstChild) {
-                    container.firstChild.style.opacity = '0';
-                    setTimeout(() => clearAlerts(section), 300);
-                }
-            }, 3000);
-        }
-
-        function clearAlerts(section = 'auth') {
-            const containerId = section === 'control' ? 'controlAlertContainer' : 'alertContainer';
-            document.getElementById(containerId).innerHTML = '';
+        function showAlert(msg, type, section = 'auth') {
+            const id = section === 'control' ? 'controlAlertContainer' : 'alertContainer';
+            document.getElementById(id).innerHTML = `<div class="alert ${type}">${msg}</div>`;
+            setTimeout(() => document.getElementById(id).innerHTML = '', 3000);
         }
     </script>
 </body>
