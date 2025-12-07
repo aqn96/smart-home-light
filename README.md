@@ -6,10 +6,42 @@ A dual-mode IoT security system with motion detection, live camera streaming, an
 
 ---
 
+## 💡 Motivation
+
+Commercial smart home security systems like Amazon Ring, Google Nest, and ADT have transformed home security, but they come with significant barriers:
+
+| System | Upfront Cost | Monthly Fee | Annual Cost (Year 1) |
+|--------|-------------|-------------|---------------------|
+| Ring Security Camera | ~$100 | $4-10/month | ~$150-220 |
+| Nest Cam + Hub | ~$200-300 | $6-12/month | ~$270-450 |
+| SimpliSafe Basic | ~$250 | $15-28/month | ~$430-590 |
+| ADT Professional | ~$500+ | $30-60/month | ~$860-1,220 |
+
+Beyond cost, these systems store video footage and personal data in the cloud, raising privacy concerns about who can access recordings of your home.
+
+**This project explores a fundamental question:** Can a fully-functional, privacy-respecting smart home security system be built for under $150 using open-source software, with no recurring costs?
+
+### The Answer: Yes.
+
+| Component | Cost |
+|-----------|------|
+| Raspberry Pi 5 (4GB) | ~$60 |
+| microSD Card (32GB) | ~$8-10 |
+| USB-C Power Supply | ~$12-15 |
+| HC-SR501 PIR Sensor | ~$2-3 |
+| Red LED + 330Ω Resistor | ~$1 |
+| Arducam 8MP USB Camera | ~$25-30 |
+| Breadboard + Jumper Wires | ~$5-8 |
+| **Total** | **~$115-130** |
+
+**One-time cost. No monthly fees. Full control. All data stays local.**
+
+---
+
 ## ✅ Project Status
 
 **Current Version:** v2.0 - Security Camera Update  
-**Last Updated:** November 2024  
+**Last Updated:** December 2025  
 **Status:** ✅ Complete - All features functional
 
 ### Implemented Features:
@@ -119,8 +151,6 @@ User clicks toggle button on web interface → LED changes state instantly
 | **Resistor** | 330Ω | - | LED current limiting |
 | **Breadboard** | 400-point | - | Circuit prototyping |
 | **Jumper Wires** | M-M, M-F | - | Connections |
-
-**Hardware Cost:** ~$25-35 (excluding Raspberry Pi)
 
 ---
 
@@ -467,13 +497,14 @@ sudo ufw status
 - ✅ **Camera stream authentication** - JWT token required
 - ✅ **SQL injection prevention** - Parameterized queries via SQLAlchemy
 - ✅ **Environment variables** - Secrets not committed to Git
+- ✅ **Local-first architecture** - All data stays on your device
 
 ---
 
 ## 🎓 Project Context
 
 **Built for:** Embedded Systems Course  
-**Date:** November 2024  
+**Date:** Fall 2025  
 **Platform:** Raspberry Pi 5
 
 ### Learning Objectives Demonstrated:
@@ -525,7 +556,7 @@ MIT License - Free to use for learning and educational purposes!
 
 ## 🙏 Acknowledgments
 
-- Built for Embedded Systems Course (Fall 2024)
+- Built for Embedded Systems Course (Fall 2025)
 - Raspberry Pi Foundation for excellent documentation
 - FastAPI and Python community for amazing tools
 - OpenCV community for computer vision libraries
