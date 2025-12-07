@@ -26,7 +26,14 @@ class MotionSensorController:
         self.timer = None
         self.motion_active = False
         
-        # NEW: Alert callback for WebSocket notifications
+        # NEW: Pause alerts when camera is being viewed
+        self.alerts_paused = False
+        
+        # Turn off LED when closing camera (user acknowledged the alert)
+        light_controller.turn_off()
+        print("🌑 LED turned OFF (camera view closed)")
+        
+        # Alert callback for WebSocket notifications
         self._alert_callback: Optional[Callable] = None
         self._alert_loop: Optional[asyncio.AbstractEventLoop] = None
         
@@ -44,19 +51,19 @@ class MotionSensorController:
             self.is_calibrated = True
     
     def set_alert_callback(self, callback: Callable, loop: asyncio.AbstractEventLoop):
-        """
-        Set callback function to be called when motion is detected
-        
-        Args:
-            callback: Async function to call on motion detection
-            loop: Asyncio event loop to run the callback in
-        """
+        """Set callback function to be called when motion is detected"""
         self._alert_callback = callback
         self._alert_loop = loop
         print("✅ Motion alert callback configured")
     
     def _trigger_alert(self):
-        """Trigger the alert callback (thread-safe)"""
+        """Trigger the alert callback (thread-safe) - only if not paused"""
+        # NEW: Check if alerts are paused (camera being viewed)
+        if self.alerts_paused:
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            print(f"[{timestamp}] 🔇 Alert suppressed (camera is being viewed)")
+            return
+        
         if self._alert_callback and self._alert_loop:
             try:
                 asyncio.run_coroutine_threadsafe(
@@ -100,8 +107,13 @@ class MotionSensorController:
             return
         
         timestamp = datetime.now().strftime("%H:%M:%S")
-        
         self.motion_active = True
+        
+        # NEW: If alerts are paused (camera viewing), skip LED and alert
+        if self.alerts_paused:
+            print(f"[{timestamp}] 👁️ Motion detected (suppressed - camera active)")
+            return
+        
         print(f"[{timestamp}] 🚨 MOTION DETECTED!")
         print(f"[{timestamp}] 💡 LED turned ON by motion sensor")
         
@@ -112,12 +124,16 @@ class MotionSensorController:
         if self.timer and self.timer.is_alive():
             self.timer.cancel()
         
-        # NEW: Trigger WebSocket alert
+        # Trigger WebSocket alert
         self._trigger_alert()
     
     def _on_no_motion(self):
         """Called when motion stops"""
         if not self.enabled or not self.is_calibrated:
+            return
+        
+        # NEW: If alerts paused, don't start auto-off timer
+        if self.alerts_paused:
             return
         
         timestamp = datetime.now().strftime("%H:%M:%S")
@@ -128,6 +144,10 @@ class MotionSensorController:
     
     def _auto_turn_off(self):
         """Turn off light after timeout (if still no motion)"""
+        # NEW: Don't auto-off if camera is being viewed
+        if self.alerts_paused:
+            return
+        
         if self.pir and not self.pir.motion_detected:
             self.motion_active = False
             light_controller.turn_off()
@@ -135,6 +155,27 @@ class MotionSensorController:
             print(f"[{timestamp}] 💤 Auto-off: Light turned OFF")
         else:
             print("Motion re-detected during countdown, keeping light on")
+    
+    # NEW: Pause/Resume alerts for camera viewing
+    def pause_alerts(self):
+        """Pause motion alerts (when user is viewing camera)"""
+        self.alerts_paused = True
+        # Cancel any pending auto-off timer
+        if self.timer and self.timer.is_alive():
+            self.timer.cancel()
+        print("🔇 Motion alerts PAUSED (camera viewing active)")
+        return {"alerts_paused": True, "message": "Motion alerts paused"}
+    
+    def resume_alerts(self):
+        """Resume motion alerts (when user closes camera)"""
+        self.alerts_paused = False
+        
+        # Turn off LED when closing camera (user acknowledged the alert)
+        light_controller.turn_off()
+        print("🌑 LED turned OFF (camera view closed)")
+        self.motion_active = False
+        print("🔔 Motion alerts RESUMED")
+        return {"alerts_paused": False, "message": "Motion alerts resumed, light turned off"}
     
     def get_status(self):
         """Get current motion sensor status"""
@@ -144,7 +185,8 @@ class MotionSensorController:
             "calibrated": self.is_calibrated,
             "motion_detected": self.pir.motion_detected if (self.pir and self.is_calibrated) else False,
             "motion_active": self.motion_active,
-            "simulation_mode": self.simulation_mode
+            "simulation_mode": self.simulation_mode,
+            "alerts_paused": self.alerts_paused  # NEW: Include pause status
         }
     
     def update_settings(self, enabled=None, timeout=None):
@@ -166,11 +208,14 @@ class MotionSensorController:
         
         return self.get_status()
     
-    # NEW: Simulate motion for testing (useful when no hardware)
     def simulate_motion(self):
         """Simulate a motion detection event (for testing)"""
         if not self.enabled:
             return {"error": "Motion sensor is disabled"}
+        
+        # NEW: Check if alerts are paused
+        if self.alerts_paused:
+            return {"error": "Alerts are paused (camera is being viewed)", "alerts_paused": True}
         
         print("🧪 Simulating motion detection...")
         self._on_motion_detected()

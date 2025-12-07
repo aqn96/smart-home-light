@@ -26,7 +26,7 @@ from websocket_manager import ws_manager
 app = FastAPI(
     title="Smart Home Light Control API",
     description="IoT light control with JWT auth, motion sensor, camera streaming, and real-time alerts",
-    version="2.2.0"
+    version="2.3.0"  # Updated version
 )
 
 app.add_middleware(
@@ -213,10 +213,33 @@ async def simulate_motion(current_user: User = Depends(get_current_user), db: Se
     """Simulate motion detection (for testing without hardware)"""
     result = motion_controller.simulate_motion()
     
-    history_entry = LightHistory(user_id=current_user.id, username=current_user.username, action="MOTION_SIMULATED")
-    db.add(history_entry)
-    db.commit()
+    # Only log if simulation was successful (not paused)
+    if "error" not in result:
+        history_entry = LightHistory(user_id=current_user.id, username=current_user.username, action="MOTION_SIMULATED")
+        db.add(history_entry)
+        db.commit()
     
+    return {**result, "user": current_user.username}
+
+
+# ============== NEW: Motion Alert Pause/Resume ==============
+
+@app.post("/motion/pause")
+async def pause_motion_alerts(current_user: User = Depends(get_current_user)):
+    """
+    Pause motion alerts (call when user opens camera view)
+    This prevents repeated alert popups while user is already watching the camera
+    """
+    result = motion_controller.pause_alerts()
+    return {**result, "user": current_user.username}
+
+
+@app.post("/motion/resume")
+async def resume_motion_alerts(current_user: User = Depends(get_current_user)):
+    """
+    Resume motion alerts (call when user closes camera view)
+    """
+    result = motion_controller.resume_alerts()
     return {**result, "user": current_user.username}
 
 
@@ -332,12 +355,13 @@ async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "version": "2.2.0",
+        "version": "2.3.0",
         "light_gpio_mode": "simulation" if light_controller.simulation_mode else "hardware",
         "motion_sensor_mode": "simulation" if motion_controller.simulation_mode else "hardware",
         "camera_mode": "simulation" if camera_controller.simulation_mode else "hardware",
         "camera_available": camera_controller.is_available,
         "motion_enabled": motion_controller.enabled,
         "motion_calibrated": motion_controller.is_calibrated,
+        "motion_alerts_paused": motion_controller.alerts_paused,  # NEW
         "websocket_connections": ws_manager.get_connection_count()
     }

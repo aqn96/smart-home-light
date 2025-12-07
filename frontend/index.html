@@ -338,6 +338,7 @@
         const API_BASE = window.location.origin;
         let authToken = localStorage.getItem('authToken');
         let ws = null;
+        let cameraActive = false;
         let statusInterval, motionInterval, historyInterval;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -466,6 +467,7 @@
         }
 
         function showIntruderAlert(data) {
+            if (cameraActive) return;
             const time = new Date(data.timestamp).toLocaleTimeString();
             document.getElementById('alertTimestamp').textContent = `Motion detected at ${time}`;
             document.getElementById('alertModal').classList.add('active');
@@ -495,15 +497,19 @@
             document.getElementById('alertModal').classList.remove('active');
         }
 
-        function viewCamera() {
+        async function viewCamera() {
             dismissAlert();
+            try { await fetch(`${API_BASE}/motion/pause`, { method: "POST", headers: { "Authorization": `Bearer ${authToken}` }}); } catch (err) {}
+            cameraActive = true;
             document.getElementById('cameraSection').classList.add('active');
             document.getElementById('cameraFeed').src = `${API_BASE}/camera/stream?token=${authToken}`;
         }
 
-        function closeCamera() {
+        async function closeCamera() {
             document.getElementById('cameraSection').classList.remove('active');
             document.getElementById('cameraFeed').src = '';
+            cameraActive = false;
+            try { await fetch(`${API_BASE}/motion/resume`, { method: "POST", headers: { "Authorization": `Bearer ${authToken}` }}); } catch (err) {}
         }
 
         async function takeSnapshot() {
