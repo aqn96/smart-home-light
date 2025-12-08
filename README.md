@@ -53,10 +53,11 @@ Beyond cost, these systems store video footage and personal data in the cloud, r
 - ✅ JWT authentication with secure login
 - ✅ Configurable auto-off timer (5s, 10s, 30s, 60s)
 - ✅ PIR motion sensor automation
-- ✅ **🆕 USB Camera live streaming (MJPEG)**
-- ✅ **🆕 Real-time WebSocket intruder alerts**
-- ✅ **🆕 "Intruder Detected" popup with audio alert**
-- ✅ **🆕 Camera snapshot download**
+- ✅ USB Camera live streaming (MJPEG)
+- ✅ Real-time WebSocket intruder alerts
+- ✅ "Intruder Detected" popup with audio alert
+- ✅ Camera snapshot download
+- ✅ Management CLI for users and database
 - ✅ Action history logging
 - ✅ HTTPS encrypted communication
 - ✅ Responsive mobile-friendly UI
@@ -355,6 +356,7 @@ smart-home-light/
 │   ├── motion_control.py    # PIR sensor logic (GPIO 27)
 │   ├── camera_control.py    # USB camera streaming
 │   ├── websocket_manager.py # Real-time alert broadcasting
+│   ├── manage.py            # CLI tool for user/database management
 │   ├── requirements.txt     # Python dependencies
 │   ├── start_https.sh       # Server startup script
 │   └── .env                 # Environment variables (gitignored)
@@ -364,6 +366,42 @@ smart-home-light/
 ├── .env.example             # Environment template
 ├── install.sh               # Automated setup script
 └── README.md                # This file
+```
+
+---
+
+## 🛠️ Management CLI
+
+Manage users and database from the command line:
+
+```bash
+cd backend
+source venv/bin/activate
+./manage.py --help
+```
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `./manage.py users list` | Show all users with email and creation date |
+| `./manage.py users add <user> <pass> [email]` | Create a new user |
+| `./manage.py users delete <username>` | Delete a user |
+| `./manage.py users reset <username>` | Reset password (prompts for new password) |
+| `./manage.py users clear` | Delete ALL users (asks confirmation) |
+| `./manage.py history list` | Show recent action history (last 20) |
+| `./manage.py history list all` | Show all action history |
+| `./manage.py history clear` | Delete ALL history (asks confirmation) |
+| `./manage.py db info` | Show database statistics |
+| `./manage.py db reset` | Wipe entire database (asks confirmation) |
+
+### Examples
+```bash
+./manage.py users list                              # List all users
+./manage.py users add john pass123                  # Create user with auto-generated email
+./manage.py users add john pass123 john@email.com  # Create user with custom email
+./manage.py users reset john                        # Reset password interactively
+./manage.py db info                                 # Show user and history counts
 ```
 
 ---
