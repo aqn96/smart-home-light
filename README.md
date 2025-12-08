@@ -3,7 +3,7 @@
 A dual-mode IoT security system with motion detection, live camera streaming, and real-time alerts, built on Raspberry Pi 5 using FastAPI + Vanilla JavaScript. Control lights manually through a web interface OR automatically via motion sensor - with instant intruder notifications and live video feed.
 
 ## 🎬 Demo
-[![Watch the Demo](https://img.shields.io/badge/YouTube-Watch%20Demo-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=XxqqmFYdNME)
+[![Demo Video](https://img.youtube.com/vi/XxqqmFYdNME/hqdefault.jpg)](https://www.youtube.com/watch?v=XxqqmFYdNME)
 
 ![Python](https://img.shields.io/badge/Python-3.11+-blue.svg) ![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg) ![Vanilla JS](https://img.shields.io/badge/JavaScript-Vanilla-yellow.svg) ![Raspberry Pi 5](https://img.shields.io/badge/Raspberry%20Pi-5-red.svg) ![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)
 
